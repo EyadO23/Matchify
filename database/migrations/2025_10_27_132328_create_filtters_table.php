@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('filtters', function (Blueprint $table) {
             $table->id();
             $table->string('url');
-            $table->enum('filter_type', ['اهداف', 'بطاقة حمراء', 'لقطات لاعب معين']);
+            $table->enum('filter_type', ['اهداف', 'بطاقة حمراء', 'لقطات لاعب معين','بطاقة صفراء']);
             $table->string('player_name')->nullable();
             $table->enum('summary_type', ['قصير', 'طويل']);
             $table->timestamps();

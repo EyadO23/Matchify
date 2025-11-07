@@ -37,14 +37,14 @@ class Filttercontroller extends Controller
     {
         $validator = Validator::make($request->all(), [
             'url' => 'required|url',
-            'type' => 'required|in:اهداف,هجمات بطاقة حمراء,لقطات لاعب معين"',
+            'type' => 'required|in:اهداف, بطاقة حمراء,لقطات لاعب معين,بطاقة صفراء"',
             'summary_type' => 'required|in:طويل,قصير',
             'player_name' => 'nullable|string|max:100',
         ], [
             'url.required' => 'الرابط مطلوب',
             'url.url' => 'الرجاء إدخال رابط صحيح',
             'type.required' => 'نوع المقطع مطلوب',
-            'type.in' => 'النوع يجب أن يكون "اهداف" أو "بطاقات حمراء "او "لقطات لاعب معين"' ,
+            'type.in' =>  'النوع يجب أن يكون "اهداف" أو "بطاقات حمراء "او "لقطات لاعب معين" أو "بطاقة صفراء"' ,
             'summary_type.required' => 'نوع الملخص مطلوب',
             'summary_type.in' => 'نوع الملخص : طويل او قصير',
         ]);
@@ -89,10 +89,7 @@ class Filttercontroller extends Controller
             ], 422);
         }
 
-         // ✅ النجاح: الرابط مقبول
-        // هنا يمكنك إرساله إلى نموذج الذكاء الاصطناعي
-        // مثال: ProcessVideoWithAI::dispatch($url, $request->type);
-
+        
         return response()->json([
             'success' => true,
             'message' => 'تم التحقق من الرابط بنجاح! جاري إرساله للمعالجة بالذكاء الاصطناعي.',
@@ -144,7 +141,7 @@ class Filttercontroller extends Controller
         if (!$videoId) return null;
 
         // محاولة استخدام YouTube API (إذا وُجد مفتاح)
-        if ($apiKey = env('AIzaSyAq7iUiHGnUYAksccfCg3hgLpRUdg0S7Hc')) {
+        if ($apiKey = env('YOUTUBE_API_KEY')) {
             $response = Http::get("https://www.googleapis.com/youtube/v3/videos", [
                 'id' => $videoId,
                 'key' => $apiKey,
