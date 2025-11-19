@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "845970661091",
+    "project_id": "matchifiy",
+    "storage_bucket": "matchifiy.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:845970661091:android:4c504b2280c4f2dd31efd6",
+        "android_client_info": {
+          "package_name": "com.example.matchifiy"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "845970661091-0j9ovvar6nqes3n0vjp7tpvgs0ovjf33.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.matchifiy",
+            "certificate_hash": "59aa207feb4e4c7788d78ef4b67d4276e149dbdf"
+          }
+        },
+        {
+          "client_id": "845970661091-0n75db9jnsbh2tfsjctro0d3hm9k4pia.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDbMhmCqQs0yI10iFrDVlqAcdwlqe12EAE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "845970661091-0n75db9jnsbh2tfsjctro0d3hm9k4pia.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "845970661091-3h760m08f1gen71fl6rfnmbtrcshrk78.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.matchifiy"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
