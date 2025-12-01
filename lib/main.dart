@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:matchifiy/widgets/login_screen.dart';
+import 'package:matchifiy/widgets/register_screen.dart';
 import 'services/firebase_options.dart'; // إذا استخدمت flutterfire cli
 
 import 'package:flutter/material.dart';
@@ -60,6 +61,7 @@ class MainApp extends StatelessWidget {
         '/': (context) => const SignInScreen(),
         // الشاشة الثانية: تحليل المباراة (MatchAnalysisScreen)
         '/analysis': (context) => const MatchAnalysisScreen(),
+        '/register': (context) => const RegisterScreen(),
       },
     );
   }

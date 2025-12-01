@@ -15,6 +15,7 @@ class VideoFilterModel {
     return {
       'url': url,
       'type': type,
+      // 'filter_type': type,
       'summary_type': summaryType,
       'player_name': playerName,
     };

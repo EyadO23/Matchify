@@ -9,8 +9,8 @@ class TokenStorage {
   static const String _ipAddress =
       // 'http://172.70.70.17:8000';
       // '192.168.116.40';
-      // 'https://290fc2f0a2ea.ngrok-free.app';
-      'https://6fd9fe516bba.ngrok-free.app';
+      // 'https://b74abc0a53c4.ngrok-free.app';
+      'https://b74abc0a53c4.ngrok-free.app';
 
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();

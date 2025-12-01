@@ -64,8 +64,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '845970661091',
     projectId: 'matchifiy',
     storageBucket: 'matchifiy.firebasestorage.app',
-    androidClientId: '845970661091-0j9ovvar6nqes3n0vjp7tpvgs0ovjf33.apps.googleusercontent.com',
-    iosClientId: '845970661091-3h760m08f1gen71fl6rfnmbtrcshrk78.apps.googleusercontent.com',
+    androidClientId:
+        '845970661091-0j9ovvar6nqes3n0vjp7tpvgs0ovjf33.apps.googleusercontent.com',
+    iosClientId:
+        '845970661091-3h760m08f1gen71fl6rfnmbtrcshrk78.apps.googleusercontent.com',
     iosBundleId: 'com.example.matchifiy',
   );
 
@@ -75,8 +77,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '845970661091',
     projectId: 'matchifiy',
     storageBucket: 'matchifiy.firebasestorage.app',
-    androidClientId: '845970661091-0j9ovvar6nqes3n0vjp7tpvgs0ovjf33.apps.googleusercontent.com',
-    iosClientId: '845970661091-3h760m08f1gen71fl6rfnmbtrcshrk78.apps.googleusercontent.com',
+    androidClientId:
+        '845970661091-0j9ovvar6nqes3n0vjp7tpvgs0ovjf33.apps.googleusercontent.com',
+    iosClientId:
+        '845970661091-3h760m08f1gen71fl6rfnmbtrcshrk78.apps.googleusercontent.com',
     iosBundleId: 'com.example.matchifiy',
   );
 

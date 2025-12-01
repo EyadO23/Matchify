@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -72,13 +74,13 @@ class _SignInScreenState extends State<SignInScreen> {
     // }
 
     final result = await AuthService.login(email, password);
-
+    log(result.toString());
     if (result != null) {
       final token = result['token'];
       final role = result['role'];
       final userId = result['user_id'];
-
-      // await TokenStorage.saveToken(token);
+      // log(token);
+      await TokenStorage.saveToken(token);
       // await TokenStorage.saveRole(role);
       // await TokenStorage.saveUserrId(userId.toString());
 
@@ -95,56 +97,240 @@ class _SignInScreenState extends State<SignInScreen> {
     }
   }
 
-  // **************************************************
-  // ********** منطق تسجيل الدخول عبر جوجل ************
-  // **************************************************
+  //////
+  ///
+  // Future<void> _handleGoogleSignIn() async {
+  //   setState(() {
+  //     _isSigningIn = true;
+  //   });
+
+  //   try {
+  //     //  تسجيل الدخول عبر Google
+  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+  //     if (googleUser == null) {
+  //       setState(() => _isSigningIn = false);
+  //       return;
+  //     }
+
+  //     final googleAuth = await googleUser.authentication;
+
+  //     //  إنشاء Credential لـ Firebase
+  //     final credential = GoogleAuthProvider.credential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
+
+  //     final userCredential = await FirebaseAuth.instance.signInWithCredential(
+  //       credential,
+  //     );
+
+  //     final firebaseUser = userCredential.user;
+
+  //     if (firebaseUser == null) {
+  //       throw Exception("Firebase user is null");
+  //     }
+
+  //     //  انتقل للشاشة التالية فور نجاح تسجيل الدخول
+  //     if (mounted) {
+  //       Navigator.pushReplacementNamed(context, '/analysis');
+  //     }
+
+  //     //  أرسل التوكين للباكند في الخلفية
+  //     final idToken = await firebaseUser.getIdToken();
+  //     print(" Firebase ID Token (sending in background): $idToken");
+
+  //     // fire-and-forget: لا ننتظر الرد
+  //     AuthService.sendFirebaseIdToken(idToken!)
+  //         .then((response) {
+  //           if (response != null && response["success"] == true) {
+  //             log(" Backend accepted Firebase ID Token");
+  //             TokenStorage.saveToken(response["token"]);
+  //           } else {
+  //             log(" Backend rejected Firebase ID Token");
+  //           }
+  //         })
+  //         .catchError((e) {
+  //           log(" Error sending Firebase ID Token: $e");
+  //         });
+  //   } catch (e) {
+  //     log("Google Sign In Error: $e");
+  //     ScaffoldMessenger.of(
+  //       context,
+  //     ).showSnackBar(SnackBar(content: Text('Failed to sign in: $e')));
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() => _isSigningIn = false);
+  //     }
+  //   }
+  // }
+
   Future<void> _handleGoogleSignIn() async {
     setState(() {
-      _isSigningIn = true; // تفعيل مؤشر التحميل
+      _isSigningIn = true;
     });
 
     try {
+      // تسجيل الدخول عبر Google
       final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
 
-      // إذا ألغى المستخدم عملية تسجيل الدخول
       if (googleUser == null) {
-        setState(() {
-          _isSigningIn = false;
-        });
+        setState(() => _isSigningIn = false);
         return;
       }
 
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final googleAuth = await googleUser.authentication;
 
-      // إنشاء بيانات الاعتماد الخاصة بـ Firebase
-      final AuthCredential credential = GoogleAuthProvider.credential(
+      // إنشاء Credential لـ Firebase
+      final credential = GoogleAuthProvider.credential(
         accessToken: googleAuth.accessToken,
         idToken: googleAuth.idToken,
       );
 
-      // تسجيل الدخول باستخدام Firebase
-      await FirebaseAuth.instance.signInWithCredential(credential);
-
-      // إذا نجح تسجيل الدخول: الانتقال إلى شاشة التحليل
-      if (mounted) {
-        Navigator.pushReplacementNamed(context, '/analysis');
-      }
-    } on Exception catch (e) {
-      // إظهار رسالة خطأ للمستخدم (يمكنك استخدام SnackBar)
-      print("Google Sign In Error: $e");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to sign in with Google: $e')),
+      final userCredential = await FirebaseAuth.instance.signInWithCredential(
+        credential,
       );
+
+      final firebaseUser = userCredential.user;
+
+      // 🔥 هذا التوكين الذي يجب إرساله للباك (Firebase ID Token)
+      final idToken = await firebaseUser?.getIdToken();
+
+      print(" Firebase ID Token: $idToken");
+
+      //  أرسل التوكين إلى الباك عبر AuthService
+      final response = await AuthService.sendFirebaseIdToken(idToken!);
+
+      print(" Backend Response: $response");
+
+      if (response != null && response["success"] == true) {
+        // خزّن التوكين إذا كنت تحتاجه
+        await TokenStorage.saveToken(response["token"]);
+
+        // انتقل للصفحة التالية
+        if (mounted) {
+          Navigator.pushReplacementNamed(context, '/analysis');
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Google login failed on backend')),
+        );
+      }
+    } catch (e) {
+      print("Google Sign In Error: $e");
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to sign in: $e')));
     } finally {
-      // إيقاف مؤشر التحميل دائماً
       if (mounted) {
-        setState(() {
-          _isSigningIn = false;
-        });
+        setState(() => _isSigningIn = false);
       }
     }
   }
+
+  // **************************************************
+  // ********** منطق تسجيل الدخول عبر جوجل ************
+  // **************************************************
+  // Future<void> _handleGoogleSignIn() async {
+  //   setState(() {
+  //     _isSigningIn = true; // تفعيل مؤشر التحميل
+  //   });
+
+  //   try {
+  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+  //     // إذا ألغى المستخدم عملية تسجيل الدخول
+  //     if (googleUser == null) {
+  //       setState(() {
+  //         _isSigningIn = false;
+  //       });
+  //       return;
+  //     }
+
+  //     final GoogleSignInAuthentication googleAuth =
+  //         await googleUser.authentication;
+
+  //     // إنشاء بيانات الاعتماد الخاصة بـ Firebase
+  //     final AuthCredential credential = GoogleAuthProvider.credential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
+
+  //     // تسجيل الدخول باستخدام Firebase
+  //     await FirebaseAuth.instance.signInWithCredential(credential);
+
+  //     // إذا نجح تسجيل الدخول: الانتقال إلى شاشة التحليل
+  //     if (mounted) {
+  //       Navigator.pushReplacementNamed(context, '/analysis');
+  //     }
+  //   } on Exception catch (e) {
+  //     // إظهار رسالة خطأ للمستخدم (يمكنك استخدام SnackBar)
+  //     print("Google Sign In Error: $e");
+  //     ScaffoldMessenger.of(context).showSnackBar(
+  //       SnackBar(content: Text('Failed to sign in with Google: $e')),
+  //     );
+  //   } finally {
+  //     // إيقاف مؤشر التحميل دائماً
+  //     if (mounted) {
+  //       setState(() {
+  //         _isSigningIn = false;
+  //       });
+  //     }
+  //   }
+  // }
+
+  //   Future<void> _handleGoogleSignIn() async {
+  //   setState(() {
+  //     _isSigningIn = true;
+  //   });
+
+  //   try {
+  //     final GoogleSignInAccount? googleUser = await GoogleSignIn().signIn();
+
+  //     if (googleUser == null) {
+  //       setState(() => _isSigningIn = false);
+  //       return;
+  //     }
+
+  //     final googleAuth = await googleUser.authentication;
+
+  //     final credential = GoogleAuthProvider.credential(
+  //       accessToken: googleAuth.accessToken,
+  //       idToken: googleAuth.idToken,
+  //     );
+
+  //     final userCredential =
+  //         await FirebaseAuth.instance.signInWithCredential(credential);
+
+  //     final firebaseUser = userCredential.user;
+
+  //     //  هذا ما يحتاجه الباكند
+  //     final idToken = await firebaseUser?.getIdToken();
+
+  //     print(" Firebase ID Token: $idToken");
+
+  //     // إرسال التوكن للباك
+  //     final response = await http.post(
+  //       Uri.parse("http://YOUR_BACKEND/api/google-login"),
+  //       headers: {"Content-Type": "application/json"},
+  //       body: jsonEncode({"id_token": idToken}),
+  //     );
+
+  //     print("📌 Backend Response: ${response.body}");
+
+  //     if (mounted) {
+  //       Navigator.pushReplacementNamed(context, '/analysis');
+  //     }
+  //   } catch (e) {
+  //     print("Google Sign In Error: $e");
+  //     ScaffoldMessenger.of(context)
+  //         .showSnackBar(SnackBar(content: Text('Failed to sign in: $e')));
+  //   } finally {
+  //     if (mounted) {
+  //       setState(() => _isSigningIn = false);
+  //     }
+  //   }
+  // }
 
   // **************************************************
   // ********** بناء واجهة المستخدم (UI) *************
@@ -377,6 +563,7 @@ class _SignInScreenState extends State<SignInScreen> {
         ),
         TextButton(
           onPressed: () {
+            Navigator.pushNamed(context, '/register');
             // ... الانتقال لشاشة التسجيل
           },
           child: const Text(
