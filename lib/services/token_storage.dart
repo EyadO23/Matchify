@@ -10,7 +10,7 @@ class TokenStorage {
       // 'http://172.70.70.17:8000';
       // '192.168.116.40';
       // 'https://b74abc0a53c4.ngrok-free.app';
-      'https://b74abc0a53c4.ngrok-free.app';
+      'https://d6d468beee88.ngrok-free.app';
 
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
