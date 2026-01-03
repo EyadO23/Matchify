@@ -8,9 +8,11 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Laravel\Socialite\Facades\Socialite;
-
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Facades\Mail;
 class AuthController extends Controller
 {
+    
     // تسجيل الدخول
     public function login(Request $request)
     {
@@ -55,6 +57,7 @@ class AuthController extends Controller
             'username' => 'required|string|unique:users,username|max:255',
             'email' => 'required|string|email|unique:users,email',
             'password' => 'required|string|min:8|confirmed',
+            'role' => 'sometimes|in:user,admin'
         ]);
 
         if ($validator->fails()) {
@@ -70,6 +73,7 @@ class AuthController extends Controller
             'username' => $request->username,
             'email' => $request->email,
             'password' => Hash::make($request->password),
+            'role' => $validated['role'] ?? 'user'
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;
@@ -82,29 +86,118 @@ class AuthController extends Controller
         ]);
     }
 
-    // إعادة تعيين كلمة المرور (نسيت كلمة المرور)
-    public function forgotPassword(Request $request)
+   public function forgotPassword(Request $request)
+{
+    $request->validate([
+        'username' => 'required|string',
+        'email' => 'required|email',
+    ]);
+
+    // جلب المستخدم باليوزرنيم
+    $user = User::where('username', $request->username)->first();
+
+    if (!$user) {
+        return response()->json([
+            'success' => false,
+            'message' => 'اسم المستخدم غير صحيح'
+        ], 404);
+    }
+
+    // التحقق أن الإيميل يخص هذا المستخدم
+    if ($user->email !== $request->email) {
+        return response()->json([
+            'success' => false,
+            'message' => 'الإيميل لا يطابق هذا المستخدم'
+        ], 403);
+    }
+
+    // إرسال رابط إعادة التعيين
+    $status = Password::sendResetLink([
+        'email' => $user->email
+    ]);
+
+    return $status === Password::RESET_LINK_SENT
+        ? response()->json([
+            'success' => true,
+            'message' => 'تم إرسال رابط إعادة تعيين كلمة المرور'
+        ])
+        : response()->json([
+            'success' => false,
+            'message' => 'حدث خطأ أثناء الإرسال'
+        ], 500);
+}
+
+
+
+public function resetPassword(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'token' => 'required',
+        'password' => 'required|min:8|confirmed',
+    ]);
+
+    $status = Password::reset(
+        $request->only('email', 'password', 'password_confirmation', 'token'),
+        function ($user, $password) {
+            $user->password = Hash::make($password);
+            $user->save();
+
+            // تسجيل خروج من كل الأجهزة
+            $user->tokens()->delete();
+        }
+    );
+
+    return $status === Password::PASSWORD_RESET
+        ? response()->json([
+            'success' => true,
+            'message' => 'تم تغيير كلمة المرور بنجاح'
+        ])
+        : response()->json([
+            'success' => false,
+            'message' => 'الرابط غير صالح أو منتهي'
+        ], 400);
+}
+
+    // تغيير كلمة المرور
+    public function changePassword(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'email' => 'required|email',
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:8|confirmed',
         ]);
 
         if ($validator->fails()) {
             return response()->json([
                 'success' => false,
-                'message' => 'يرجى إدخال بريد إلكتروني صحيح',
+                'message' => 'البيانات غير صحيحة',
                 'errors' => $validator->errors()
             ], 422);
         }
 
-        // هنا يمكنك إرسال رابط إعادة تعيين كلمة المرور عبر البريد (نستخدم بسيطة للتجربة)
-        // في التطبيق الحقيقي: استخدم Mail facade + Password Reset
+        $user = $request->user();
+
+        // التحقق من كلمة المرور الحالية
+        if (!Hash::check($request->current_password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'كلمة المرور الحالية غير صحيحة'
+            ], 401);
+        }
+
+        // تحديث كلمة المرور
+        $user->password = Hash::make($request->new_password);
+        $user->save();
+
+        // حذف جميع التوكنات (اختياري – للأمان)
+        $user->tokens()->delete();
 
         return response()->json([
             'success' => true,
-            'message' => 'تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني'
+            'message' => 'تم تغيير كلمة المرور بنجاح، يرجى تسجيل الدخول مرة أخرى'
         ]);
     }
+
 
     // تسجيل الخروج
     public function logout(Request $request)

@@ -8,13 +8,14 @@ use Illuminate\Support\Str;
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Exception\Auth\InvalidIdToken;
 use App\Models\User;
+use Kreait\Firebase\Contract\Auth;
 
 class FirebaseAuthController extends Controller
 {
     public function login(Request $request)
     {
 
-         if (app()->environment('local') && $request->id_token === 'test_firebase_token') {
+        /* if (app()->environment('local') && $request->id_token === 'test_firebase_token') {
         $user = User::firstOrCreate(
             ['email' => 'test@example.com'],
             [
@@ -31,7 +32,7 @@ class FirebaseAuthController extends Controller
             'user' => $user,
             'token' => $token
         ]);
-    }
+    }*/
     //
         $request->validate([
             'id_token' => 'required|string',
