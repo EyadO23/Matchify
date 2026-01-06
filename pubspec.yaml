@@ -17,15 +17,50 @@ dependencies:
   flutter_secure_storage: ^9.2.4
   flutter_localizations: 
     sdk: flutter
+  file_picker: ^10.3.8
+  app_links: ^7.0.0
+  video_player: ^2.10.1
+  path_provider: ^2.1.5
+  video_trimmer: ^5.0.0
+  dio: ^5.9.0
+  flutter_native_splash: ^2.4.7
+  permission_handler: ^12.0.1
+ 
+
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: "^0.13.1"
 
 flutter:
   uses-material-design: true
   assets:
     - assets/google_logo.png
     - assets/background_image.png
+    - assets/images/logo.jpg
+    - assets/images/splash_bg.png
+    - assets/images/background.png
+    - assets/images/backgroundAi.jpg
+    - assets/images/backgr.jpg
+    - assets/images/back.png
+    - assets/images/back.jpg
+    - assets/images/BackG.jpg
+    - assets/images/final.jpg
+    - assets/images/splash.jpg
 
+
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/logo.jpg"
+  min_sdk_android: 21
+
+flutter_native_splash:
+  color: "#1E1E2E" 
+  image: assets/images/logo.png 
+  android_12:
+    color: "#1E1E2E"
+    icon_background_color: "#1E1E2E"

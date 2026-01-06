@@ -3,6 +3,8 @@ import 'package:matchifiy/models/user.dart';
 import 'dart:developer';
 import 'package:matchifiy/services/auth_service.dart';
 import 'package:matchifiy/services/app_localizations.dart';
+import 'package:matchifiy/services/token_storage.dart';
+import 'package:matchifiy/widgets/CustomBackgroundScaffold.dart';
 
 class AppColors {
   static const Color primaryDark = Color(0xFF1E1E2E);
@@ -29,6 +31,71 @@ class _RegisterScreenState extends State<RegisterScreen> {
   bool _isSigningUp = false;
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
+  bool _isLoading = false;
+
+  Future<void> _handleSignIn() async {
+    final loc = AppLocalizations.of(context);
+
+    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(loc.pleaseFillFields)));
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final result = await AuthService.login(
+        _usernameController.text.trim(),
+        _passwordController.text.trim(),
+      );
+      log(result.toString());
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+
+      if (result != null && result.containsKey('token')) {
+        final name = result['name'];
+        final username = result['username'];
+        final email = result['email'];
+        await TokenStorage.saveToken(result['token']);
+        await TokenStorage.saveUserData(
+          name: name, // أو الاسم القادم من قاعدة بياناتك
+          email: email,
+          username: username,
+
+          // name: user['full_name'], // أو الاسم القادم من قاعدة بياناتك
+          // email: user['email'],
+          // username: user['username'],
+        );
+
+        // Navigator.pushReplacementNamed(context, '/analysis');
+        Navigator.pushReplacementNamed(context, '/home');
+        // log(result['name']);
+        // log(result['email']);
+        // log(result['user']['username']);
+        // log('nameis$name');
+        // log(email);
+        // log(username);
+        // log(result['token']);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(loc.loginFailedMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${loc.error}: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
 
   void _handleSignUp() async {
     final loc = AppLocalizations.of(context);
@@ -86,7 +153,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
             backgroundColor: AppColors.gradientStart,
           ),
         );
-        Navigator.pop(context);
+        _handleSignIn();
+        // Navigator.pop(context);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -127,8 +195,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // استخدام Directionality لتحديد اتجاه الكتابة (RTL/LTR)
     return Directionality(
       textDirection: isArabic ? TextDirection.rtl : TextDirection.ltr,
-      child: Scaffold(
-        backgroundColor: AppColors.primaryDark,
+      child: CustomBackgroundScaffold(
+        // child: Scaffold(
+        // backgroundColor: AppColors.primaryDark,
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -169,10 +238,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 40),
 
               // حقول الإدخال باستخدام النصوص المترجمة
-              _buildInputField(loc.fullName, _nameController, 'Ahmad Eyad'),
+              _buildInputField(loc.fullName, _nameController, 'Ghaleb Marwa'),
               const SizedBox(height: 20),
 
-              _buildInputField(loc.username, _usernameController, 'EyadoKh'),
+              _buildInputField(loc.username, _usernameController, 'Ghaleb2004'),
               const SizedBox(height: 20),
 
               _buildInputField(
@@ -320,7 +389,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       height: 50,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.gradientStart, AppColors.gradientEnd],
+          // colors: [AppColors.gradientStart, AppColors.gradientEnd],
+          colors: [
+            Color.fromARGB(255, 114, 116, 228),
+            Color.fromARGB(255, 146, 163, 208),
+          ],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),

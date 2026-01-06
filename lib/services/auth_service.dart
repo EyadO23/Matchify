@@ -19,6 +19,7 @@ class AuthService {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
         // body: json.encode({'email': email, 'password': password}),
         body: json.encode({'username': email, 'password': password}),
@@ -33,6 +34,9 @@ class AuthService {
           'token': data['token'],
           'role': data['role'],
           'user_id': data['user_id'],
+          'name': data['user']['name'],
+          'email': data['user']['email'],
+          'username': data['user']['username'],
         };
       } else {
         return null;
@@ -61,6 +65,7 @@ class AuthService {
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
         },
         // تمرير كلمة المرور وتأكيدها إلى دالة toJsonForRegister المعدلة
         body: jsonEncode(user.toJsonForRegister(password, confirmPassword)),
@@ -92,35 +97,120 @@ class AuthService {
     }
   }
 
-  static Future<Map<String, dynamic>?> sendFirebaseIdToken(
-    String idToken,
-  ) async {
+  static Future<Map<String, dynamic>> changePassword({
+    required String currentPassword,
+    required String newPassword,
+    required String confirmPassword,
+  }) async {
     try {
-      final ip = await TokenStorage.getIp();
+      // جلب التوكن لأن العملية تتطلب صلاحية (Authorization)
+      final token = await TokenStorage.getToken();
 
       final response = await http.post(
-        Uri.parse("$ip/api/auth/firebase"),
+        Uri.parse('$ip/api/change-password'),
         headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token', // إرسال التوكن في الـ Header
         },
-        body: jsonEncode({"token": idToken}),
-        // body: jsonEncode({"id_token": idToken}),
+        body: json.encode({
+          'current_password': currentPassword,
+          'new_password': newPassword,
+          'new_password_confirmation': confirmPassword,
+        }),
       );
 
-      log(" Backend Response Status: ${response.statusCode}");
-      log(" Backend Response Body: ${response.body}");
+      log('Change Password Status: ${response.statusCode}');
+      log('Change Password Body: ${response.body}');
+
+      final data = json.decode(response.body);
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body);
+        return {
+          'success': true,
+          'message': data['message'] ?? 'Password changed successfully',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'Failed to change password',
+        };
       }
-
-      return null;
     } catch (e) {
-      log("🔥 Error sending Firebase ID Token: $e");
-      return null;
+      log('Change Password Error: $e');
+      return {'success': false, 'message': 'Network error occurred'};
     }
   }
+
+  static Future<Map<String, dynamic>> sendResetLink({
+    required String username,
+    required String email,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$ip/api/forgot-password'), // تأكد من المسار في الباك اند
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: json.encode({'username': username, 'email': email}),
+      );
+
+      log('Forgot Password Status: ${response.statusCode}');
+      log('Forgot Password Body: ${response.body}');
+
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {
+          'success': true,
+          'message': data['message'] ?? 'تم إرسال رابط إعادة التعيين بنجاح',
+        };
+      } else {
+        return {
+          'success': false,
+          'message': data['message'] ?? 'حدث خطأ ما، يرجى المحاولة لاحقاً',
+        };
+      }
+    } catch (e) {
+      log('Forgot Password Error: $e');
+      return {
+        'success': false,
+        'message': 'فشل الاتصال بالسيرفر، تأكد من اتصالك بالإنترنت',
+      };
+    }
+  }
+
+  // static Future<Map<String, dynamic>?> sendFirebaseIdToken(
+  //   String idToken,
+  // ) async {
+  //   try {
+  //     final ip = await TokenStorage.getIp();
+
+  //     final response = await http.post(
+  //       Uri.parse("$ip/api/auth/firebase"),
+  //       headers: {
+  //         "Accept": "application/json",
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: jsonEncode({"token": idToken}),
+  //       // body: jsonEncode({"id_token": idToken}),
+  //     );
+
+  //     log(" Backend Response Status: ${response.statusCode}");
+  //     log(" Backend Response Body: ${response.body}");
+
+  //     if (response.statusCode == 200) {
+  //       return jsonDecode(response.body);
+  //     }
+
+  //     return null;
+  //   } catch (e) {
+  //     log("🔥 Error sending Firebase ID Token: $e");
+  //     return null;
+  //   }
+  // }
 
   static Future<void> logout() async {
     final ip = TokenStorage.getIp();
@@ -152,6 +242,42 @@ class AuthService {
       await _storage.delete(key: 'token');
     } catch (e) {
       log('Logout Request failed: $e');
+    }
+  }
+
+  static Future<Map<String, dynamic>> resetPassword({
+    required String email,
+    required String token,
+    required String password,
+    required String confirmPassword,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$ip/api/reset-password'),
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          "ngrok-skip-browser-warning": "true",
+        },
+        body: json.encode({
+          'email': email,
+          'token': token,
+          'password': password,
+          'password_confirmation': confirmPassword,
+        }),
+      );
+
+      log('Reset Password Status: ${response.statusCode}');
+      final data = json.decode(response.body);
+
+      if (response.statusCode == 200) {
+        return {'success': true, 'message': data['message']};
+      } else {
+        return {'success': false, 'message': data['message']};
+      }
+    } catch (e) {
+      log('Reset Password Error: $e');
+      return {'success': false, 'message': null};
     }
   }
 }

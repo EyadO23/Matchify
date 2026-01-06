@@ -225,11 +225,71 @@
 //     );
 //   }
 // }
+
+// import 'package:flutter/material.dart';
+// import 'package:matchifiy/services/token_storage.dart';
+// import 'package:matchifiy/widgets/change_password_screen.dart';
+// import 'package:matchifiy/widgets/home_screen.dart';
+// import 'package:matchifiy/widgets/match_analysis_screen.dart';
+// import 'package:matchifiy/widgets/register_screen.dart';
+// import 'package:matchifiy/widgets/sign_in_screen.dart';
+
+// void main() async {
+//   // التأكد من تهيئة أدوات فلاتر قبل جلب التوكن
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   // جلب التوكن المحفوظ من الذاكرة الدائمة
+//   final String? token = await TokenStorage.getToken();
+
+//   // تشغيل التطبيق وتمرير الصفحة الابتدائية بناءً على وجود التوكن
+//   runApp(
+//     MyApp(
+//       initialScreen:
+//           (token != null && token.isNotEmpty)
+//               ? const HomeScreen()
+//               : const SignInScreen(),
+//     ),
+//   );
+// }
+
+// class MyApp extends StatelessWidget {
+//   final Widget initialScreen;
+//   const MyApp({super.key, required this.initialScreen});
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       title: 'Matchifiy',
+//       debugShowCheckedModeBanner: false,
+//       theme: ThemeData(
+//         brightness: Brightness.dark,
+//         scaffoldBackgroundColor: const Color(0xFF0F172A),
+//       ),
+
+//       // الصفحة التي ستبدأ أولاً بناءً على الشرط في دالة main
+//       home: initialScreen,
+
+//       // تعريف المسارات لسهولة التنقل
+//       routes: {
+//         '/home': (context) => const HomeScreen(),
+//         '/change-password': (context) => const ChangePasswordScreen(),
+//         '/register': (context) => const RegisterScreen(),
+//         '/analysis': (context) => const MatchAnalysisScreen(),
+//         '/login': (context) => const SignInScreen(),
+//       },
+//     );
+//   }
+// }
+
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:matchifiy/services/app_localizations.dart';
+import 'package:matchifiy/widgets/SplashScreen.dart';
+import 'package:matchifiy/widgets/change_password_screen.dart';
+import 'package:matchifiy/widgets/forgate_password_screen.dart';
 import 'package:matchifiy/widgets/home_screen.dart';
 import 'package:matchifiy/widgets/match_analysis_screen.dart';
+import 'package:matchifiy/widgets/reset_password_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:matchifiy/widgets/register_screen.dart';
 import 'package:matchifiy/widgets/sign_in_screen.dart';
@@ -299,9 +359,11 @@ class _MyAppState extends State<MyApp> {
         scaffoldBackgroundColor: const Color(0xFF1E1E2E),
         fontFamily: 'Roboto',
       ),
+      // هنا دمجنا منطق فحص التوكن مع واجهة التطبيق
       home: FutureBuilder<String?>(
         future: TokenStorage.getToken(),
         builder: (context, snapshot) {
+          // 1. حالة الانتظار أثناء جلب التوكن من الذاكرة
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Scaffold(
               body: Center(
@@ -309,7 +371,17 @@ class _MyAppState extends State<MyApp> {
               ),
             );
           }
-          return const SignInScreen();
+
+          // 2. إذا وجدنا توكن غير فارغ، نتوجه مباشرة للرئيسية
+          if (snapshot.hasData &&
+              snapshot.data != null &&
+              snapshot.data!.isNotEmpty) {
+            return const HomeScreen();
+          }
+
+          // 3. إذا لم يوجد توكن، نتوجه لصفحة تسجيل الدخول
+          return const SplashScreen();
+          // return const SignInScreen();
         },
       ),
       routes: {
@@ -317,10 +389,144 @@ class _MyAppState extends State<MyApp> {
         '/register': (context) => const RegisterScreen(),
         '/home': (context) => const HomeScreen(),
         '/analysis': (context) => const MatchAnalysisScreen(),
+        '/login': (context) => const SignInScreen(),
+        '/forgot-password': (context) => const ForgotPasswordScreen(),
+        '/change-password': (context) => const ChangePasswordScreen(),
+        '/reset-password':
+            (context) => const ResetPasswordScreen(
+              emailFromEmail: '',
+              tokenFromEmail: '',
+            ),
       },
     );
   }
 }
+// import 'package:flutter/material.dart';
+// import 'package:flutter_localizations/flutter_localizations.dart';
+// import 'package:matchifiy/services/app_localizations.dart';
+// import 'package:matchifiy/widgets/home_screen.dart';
+// import 'package:matchifiy/widgets/match_analysis_screen.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:matchifiy/widgets/register_screen.dart';
+// import 'package:matchifiy/widgets/sign_in_screen.dart';
+// import 'package:matchifiy/services/token_storage.dart';
+
+// void main() async {
+//   // التأكد من تهيئة الـ Widgets قبل بدء التطبيق
+//   WidgetsFlutterBinding.ensureInitialized();
+
+//   // قراءة اللغة المحفوظة من الجهاز
+//   final prefs = await SharedPreferences.getInstance();
+//   final String? languageCode = prefs.getString('language_code');
+
+//   runApp(
+//     MyApp(
+      
+//       savedLocale:
+//           languageCode != null ? Locale(languageCode) : const Locale('ar'),
+//     ),
+//   );
+// }
+
+// class MyApp extends StatefulWidget {
+//   final Locale savedLocale;
+//   const MyApp({super.key, required this.savedLocale});
+
+//   @override
+//   State<MyApp> createState() => _MyAppState();
+
+//   static _MyAppState of(BuildContext context) =>
+//       context.findAncestorStateOfType<_MyAppState>()!;
+// }
+
+// class _MyAppState extends State<MyApp> {
+//   late Locale _locale;
+
+//   @override
+//   void initState() {
+//     super.initState();
+//     _locale = widget.savedLocale;
+//   }
+
+//   // دالة لتغيير اللغة وحفظها محلياً
+//   void setLocale(Locale newLocale) async {
+//     setState(() {
+//       _locale = newLocale;
+//     });
+//     final prefs = await SharedPreferences.getInstance();
+//     await prefs.setString('language_code', newLocale.languageCode);
+//   }
+
+//   @override
+//   Widget build(BuildContext context) {
+//     return MaterialApp(
+//       debugShowCheckedModeBanner: false,
+//       title: 'Matchify',
+//       locale: _locale,
+//       supportedLocales: const [Locale('en', ''), Locale('ar', '')],
+//       localizationsDelegates: const [
+//         AppLocalizations.delegate,
+//         GlobalMaterialLocalizations.delegate,
+//         GlobalWidgetsLocalizations.delegate,
+//         GlobalCupertinoLocalizations.delegate,
+//       ],
+//       theme: ThemeData(
+//         brightness: Brightness.dark,
+//         primaryColor: const Color(0xFF8A2BE2),
+//         scaffoldBackgroundColor: const Color(0xFF1E1E2E),
+//         fontFamily: 'Roboto',
+//       ),
+//       home: FutureBuilder<String?>(
+//         future: TokenStorage.getToken(),
+//         builder: (context, snapshot) {
+//           if (snapshot.connectionState == ConnectionState.waiting) {
+//             return const Scaffold(
+//               body: Center(
+//                 child: CircularProgressIndicator(color: Color(0xFF8A2BE2)),
+//               ),
+//             );
+//           }
+//           return const SignInScreen();
+//         },
+//       ),
+//       routes: {
+//         '/signin': (context) => const SignInScreen(),
+//         '/register': (context) => const RegisterScreen(),
+//         '/home': (context) => const HomeScreen(),
+//         '/analysis': (context) => const MatchAnalysisScreen(),
+//         '/login': (context) => const SignInScreen(),
+//       },
+//     );
+//   }
+// }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // import 'package:flutter/material.dart';
 // import 'package:flutter_localizations/flutter_localizations.dart';
 // import 'package:matchifiy/widgets/app_localizations.dart';
