@@ -20,4 +20,11 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
     }
+
+    public function addTeams(): void
+    {
+        $this->call([
+            TeamsTableSeeder::class,
+        ]);
+    }
 }

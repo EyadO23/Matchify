@@ -76,7 +76,7 @@ def cut_video_segments(video_path, segments, output_dir, padding=1.5):
             logger=None
         )
 
-        clips.append(str(out_path))  # تخزين مسار النسخة المقطوعة
+        clips.append(str(out_path))
         total_selected += (e - s)
 
     video.close()
@@ -87,17 +87,25 @@ def cut_video_segments(video_path, segments, output_dir, padding=1.5):
     }
 
 
-def process_video_highlights(video_path, output_dir):
+def process_video_highlights(video_path, output_dir, summary_type=None, summary_length=None):
+    """
+    المعالجة الرئيسية لاستخراج الـ highlights من الفيديو
+    summary_type: "اهداف" / "بطاقة حمراء" / "بطاقة صفراء"
+    summary_length: "قصير" / "طويل"
+    """
     start_time = time.time()
 
+    # استخراج مقاطع الصوت
     segments, audio_stats = extract_audio_segments(video_path)
+    
+    # قص الفيديو حسب المقاطع
     clips, video_stats = cut_video_segments(video_path, segments, output_dir)
 
     video = VideoFileClip(video_path)
     total_duration = video.duration
     video.close()
 
-    return {
+    result = {
         "video_path": video_path,
         "total_duration_sec": round(total_duration, 2),
         "segments": segments,
@@ -107,5 +115,12 @@ def process_video_highlights(video_path, output_dir):
             total_duration / max(video_stats["selected_duration_sec"], 1), 2
         ),
         "processing_time_sec": round(time.time() - start_time, 2),
-        "clips": clips
+        "clips": clips,
+        # =========================
+        # البيانات الجديدة
+        # =========================
+        "summary_type": summary_type,
+        "summary_length": summary_length
     }
+
+    return result

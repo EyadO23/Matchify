@@ -5,11 +5,13 @@
 # import torch
 # import cv2
 # import redis
+# import subprocess
 
 # # =========================
 # # Fix PYTHON PATH
 # # =========================
 # sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+
 
 # from video_ai.config import *
 # from video_ai.models.resnet3d import load_resnet3d
@@ -24,21 +26,19 @@
 # r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
 
 # def update(job_id, key, value):
-#     """تحديث قيمة في Redis"""
 #     r.set(f"job:{job_id}:{key}", value)
 
 # # =========================
 # # Load models (مرة واحدة)
 # # =========================
 # def load_models(job_id):
-#     update(job_id, "stage", "loading model")
+#     update(job_id, "stage", "تحميل النموذج")
 #     update(job_id, "progress", 5)
 
 #     resnet = load_resnet3d(DEVICE)
 #     clf = MLP().to(DEVICE)
 #     clf.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
 #     clf.eval()
-
 #     return resnet, clf
 
 # # =========================
@@ -95,37 +95,29 @@
 #     parser = argparse.ArgumentParser()
 #     parser.add_argument("--clips_dir", required=True)
 #     parser.add_argument("--job_id", required=True)
+#     parser.add_argument("--video_id", required=True)  
+#     parser.add_argument("--user_id", required=True)   
 
-#     # النوع والطول
-#     parser.add_argument("--summary_type", type=str, default="goals", choices=["goals", "cards"])
-#     parser.add_argument("--summary_length", type=str, default="short", choices=["short", "long"])
+#     parser.add_argument("--summary_type", type=str, default="اهداف", choices=["اهداف", "كرت احمر","كرت اصفر"])
+#     parser.add_argument("--summary_length", type=str, default="قصير", choices=["قصير", "طويل"])
 
 #     args = parser.parse_args()
 
 #     CLIPS_DIR = args.clips_dir
 #     JOB_ID = args.job_id
+#     VIDEO_ID = args.video_id
+#     USER_ID = args.user_id
 #     SUMMARY_TYPE = args.summary_type
 #     SUMMARY_LENGTH = args.summary_length
 
-#     # =========================
-#     # تحديد threshold تلقائي حسب النوع وطول الملخص
-#     # =========================
-#     if SUMMARY_TYPE == "goals" and SUMMARY_LENGTH == "short":
-#         THRESHOLD = 0.5
-#     elif SUMMARY_TYPE == "goals" and SUMMARY_LENGTH == "long":
-#         THRESHOLD = 0.5
-#     elif SUMMARY_TYPE == "cards" and SUMMARY_LENGTH == "short":
-#         THRESHOLD = 0.5
-#     else:  # cards long
-#         THRESHOLD = 0.5 
+#     THRESHOLD = 0.5  # يمكن تعديل حسب النوع والطول
 
-#     # إعداد مجلد الخرج
-#     OUTPUT_DIR = os.path.join(os.path.dirname(CLIPS_DIR), "summaryOut")
+#     OUTPUT_DIR = os.path.join("C:/Users/LOQ/Desktop/Matchify Laravel/storage/app/video_ai/highlights", JOB_ID)
 #     os.makedirs(OUTPUT_DIR, exist_ok=True)
+#     FINAL_HIGHLIGHT = os.path.join(OUTPUT_DIR, "highlight.mp4")
 
-#     # تحديث حالة job
-#     update(JOB_ID, "status", "processing")
-#     update(JOB_ID, "stage", "starting inference")
+#     update(JOB_ID, "status", "جارٍ المعالجة")
+#     update(JOB_ID, "stage", "بدء التحليل")
 #     update(JOB_ID, "progress", 1)
 
 #     resnet, clf = load_models(JOB_ID)
@@ -133,48 +125,43 @@
 #     clips = [f for f in os.listdir(CLIPS_DIR) if f.endswith(".mp4")]
 #     total = len(clips)
 
-#     results = {}
 #     highlights = []
 
 #     for i, clip in enumerate(clips):
-#         update(JOB_ID, "stage", f"processing {clip}")
-
+#         update(JOB_ID, "stage", f"معالجة {clip}")
 #         progress = int(((i + 1) / total) * 90) + 5
 #         update(JOB_ID, "progress", progress)
 
 #         path = os.path.join(CLIPS_DIR, clip)
 #         preds, segments = process_clip(path, resnet, clf, THRESHOLD)
 
-#         results[clip] = {
-#             "predictions_per_frame": preds,
-#             "highlight_segments": segments
-#         }
-
 #         if segments:
-#             output_path = os.path.join(OUTPUT_DIR, f"highlight_{clip}")
-#             if create_highlight_video(path, segments, output_path):
-#                 highlights.append({
-#                     "clip": clip,
-#                     "segments": segments,
-#                     "highlight_video": output_path
-#                 })
+#             create_highlight_video(path, segments, FINAL_HIGHLIGHT)
+#             highlights.append({
+#                 "clip": clip,
+#                 "segments": segments,
+#                 "highlight_video": f"video_ai/highlights/{JOB_ID}/highlight.mp4"
+#             })
 
 #     # =========================
-#     # تحديث النتائج في Redis
+#     # تحديث النتائج في Redis لتكون متوافقة مع SummaryController
 #     # =========================
 #     update(JOB_ID, "progress", 100)
-#     update(JOB_ID, "status", "done")
-#     update(JOB_ID, "stage", "finished")
+#     update(JOB_ID, "status", "مكتمل")
+#     update(JOB_ID, "stage", "مكتمل")
 
 #     update(JOB_ID, "result", json.dumps({
-#         "highlights": highlights,
-#         "raw_results": results,
+#         "job_id": JOB_ID,
+#         "video_id": VIDEO_ID,
+#         "user_id": USER_ID,
+#         "clips_dir": CLIPS_DIR,
 #         "summary_type": SUMMARY_TYPE,
 #         "summary_length": SUMMARY_LENGTH,
-#         "threshold": THRESHOLD
+#         "video_path": f"video_ai/highlights/{JOB_ID}/highlight.mp4",
+#         "highlights": highlights
 #     }))
 
-#     print("[INFO] All highlights processed and saved.")
+#     print(f"[INFO] Highlight video for job {JOB_ID} saved at {FINAL_HIGHLIGHT}")
 
 
 import sys
@@ -204,21 +191,19 @@ from video_ai.utils.video_info import get_fps
 r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
 
 def update(job_id, key, value):
-    """تحديث قيمة في Redis"""
     r.set(f"job:{job_id}:{key}", value)
 
 # =========================
-# Load models (مرة واحدة)
+# Load models
 # =========================
 def load_models(job_id):
-    update(job_id, "stage", "loading model")
+    update(job_id, "stage", "تحميل النموذج")
     update(job_id, "progress", 5)
 
     resnet = load_resnet3d(DEVICE)
     clf = MLP().to(DEVICE)
     clf.load_state_dict(torch.load(MODEL_PATH, map_location=DEVICE))
     clf.eval()
-
     return resnet, clf
 
 # =========================
@@ -275,88 +260,81 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--clips_dir", required=True)
     parser.add_argument("--job_id", required=True)
-
-    # النوع والطول
-    parser.add_argument("--summary_type", type=str, default="goals", choices=["goals", "cards"])
-    parser.add_argument("--summary_length", type=str, default="short", choices=["short", "long"])
-
+    parser.add_argument("--video_id", required=True)
+    parser.add_argument("--user_id", required=False)
+    parser.add_argument("--summary_type", type=str, default="اهداف", choices=["اهداف", "كرت احمر","كرت اصفر"])
+    parser.add_argument("--summary_length", type=str, default="قصير", choices=["قصير", "طويل"])
     args = parser.parse_args()
 
     CLIPS_DIR = args.clips_dir
     JOB_ID = args.job_id
+    VIDEO_ID = args.video_id
     SUMMARY_TYPE = args.summary_type
     SUMMARY_LENGTH = args.summary_length
 
-    # =========================
-    # تحديد threshold تلقائي حسب النوع وطول الملخص
-    # =========================
-    if SUMMARY_TYPE == "goals" and SUMMARY_LENGTH == "short":
-        THRESHOLD = 0.5
-    elif SUMMARY_TYPE == "goals" and SUMMARY_LENGTH == "long":
-        THRESHOLD = 0.5
-    elif SUMMARY_TYPE == "cards" and SUMMARY_LENGTH == "short":
-        THRESHOLD = 0.5
-    else:  # cards long
-        THRESHOLD = 0.5 
+    THRESHOLD = 0.5
 
-    # إعداد مجلد الخرج لكل job
-    OUTPUT_DIR = os.path.join("C:/Users/LOQ/Desktop/Matchify Laravel/storage/app/video_ai/highlights", JOB_ID)
+    OUTPUT_DIR = os.path.join("C:/Users/LOQ/Desktop/Matchify Laravel/storage/app/public/video_ai/highlights", JOB_ID)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-    # اسم الفيديو النهائي
     FINAL_HIGHLIGHT = os.path.join(OUTPUT_DIR, "highlight.mp4")
 
-    # تحديث حالة job
-    update(JOB_ID, "status", "processing")
-    update(JOB_ID, "stage", "starting inference")
+    update(JOB_ID, "status", "جارٍ المعالجة")
+    update(JOB_ID, "stage", "بدء التحليل")
     update(JOB_ID, "progress", 1)
 
+    # =========================
+    # Load ML models
+    # =========================
     resnet, clf = load_models(JOB_ID)
 
     clips = [f for f in os.listdir(CLIPS_DIR) if f.endswith(".mp4")]
     total = len(clips)
-
-    results = {}
     highlights = []
 
     for i, clip in enumerate(clips):
-        update(JOB_ID, "stage", f"processing {clip}")
-
+        update(JOB_ID, "stage", f"معالجة {clip}")
         progress = int(((i + 1) / total) * 90) + 5
         update(JOB_ID, "progress", progress)
 
         path = os.path.join(CLIPS_DIR, clip)
         preds, segments = process_clip(path, resnet, clf, THRESHOLD)
 
-        results[clip] = {
-            "predictions_per_frame": preds,
-            "highlight_segments": segments
-        }
-
-        if segments:
-            # ندمج كل الـ clips في فيديو واحد فقط
-            create_highlight_video(path, segments, FINAL_HIGHLIGHT)
-
-            highlights.append({
-                "clip": clip,
-                "segments": segments,
-                "highlight_video": f"video_ai/highlights/{JOB_ID}/highlight.mp4"
+        segment_data = []
+        for start, end, score in segments:
+            segment_data.append({
+                "start_time_sec": start,
+                "end_time_sec": end,
+                "confidence_score": score
             })
 
+        if segments:
+            create_highlight_video(path, segments, FINAL_HIGHLIGHT)
+            highlights.append({
+                "clip": clip,
+                "segments": segment_data,
+                "highlight_video": f"/storage/video_ai/highlights/{JOB_ID}/highlight.mp4"
+            })
+
+        # أي log هنا للـ debug يروح لـ stderr
+        print(f"Processed {clip}, segments found: {len(segments)}", file=sys.stderr)
+
     # =========================
-    # تحديث النتائج في Redis
+    # Update Redis result
     # =========================
     update(JOB_ID, "progress", 100)
-    update(JOB_ID, "status", "done")
-    update(JOB_ID, "stage", "finished")
+    update(JOB_ID, "status", "مكتمل")
+    update(JOB_ID, "stage", "مكتمل")
 
-    update(JOB_ID, "result", json.dumps({
-        "highlights": highlights,
-        "raw_results": results,
+    # JSON النهائي فقط على stdout مع مسارات HTTP جاهزة للواجهة
+    json_result = {
+        "job_id": JOB_ID,
+        "video_id": VIDEO_ID,
+        "clips_dir": CLIPS_DIR,
         "summary_type": SUMMARY_TYPE,
         "summary_length": SUMMARY_LENGTH,
-        "threshold": THRESHOLD,
-        "video_path": f"video_ai/highlights/{JOB_ID}/highlight.mp4"
-    }))
+        "video_path": f"/storage/video_ai/highlights/{JOB_ID}/highlight.mp4",
+        "highlights": highlights
+    }
 
-    print(f"[INFO] Highlight video saved at {FINAL_HIGHLIGHT}")
+    # اطبع JSON فقط
+    print(json.dumps(json_result))

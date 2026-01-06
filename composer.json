@@ -13,12 +13,14 @@
         "google/apiclient": "*",
         "guzzlehttp/guzzle": "*",
         "kreait/firebase-php": "^7.23",
+        "kreait/laravel-firebase": "^6.2",
         "laravel/framework": "^12.0",
         "laravel/sanctum": "^4.2",
         "laravel/socialite": "^5.23",
         "laravel/tinker": "^2.10.1",
         "openai-php/client": "^0.18.0",
         "openai-php/laravel": "0.18",
+        "php-ffmpeg/php-ffmpeg": "*",
         "predis/predis": "^3.3"
     },
     "require-dev": {

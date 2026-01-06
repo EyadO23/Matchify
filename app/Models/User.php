@@ -76,16 +76,21 @@ class User extends Authenticatable implements MustVerifyEmail
 
      public function filtters(): HasMany
     {
-        return $this->hasMany(Filtter::class, 'user_id');
+        return $this->hasMany(Video::class, 'user_id');
     }
 
-    public function favoriteTeam()
+    
+    public function favoriteTeams()
     {
-        return $this->hasOne(FavoriteTeam::class);
+        return $this->belongsToMany(
+            Team::class,           // النموذج المرتبط
+            'favorite_teams',      // اسم جدول الكسر
+            'user_id',             // المفتاح الخارجي للـ User
+            'team_id',             // المفتاح الخارجي للـ Team
+            'id',                  // المفتاح الأساسي للـ User
+            'team_id'                   // المفتاح الأساسي للـ Team
+        )->withTimestamps();
     }
-    public function highlights()
-{
-    return $this->hasMany(Highlight::class);
-}
+
 
 }

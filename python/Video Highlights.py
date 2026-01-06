@@ -1,104 +1,104 @@
 
-import json
-import redis
-import subprocess
-from pathlib import Path
+# import json
+# import redis
+# import subprocess
+# from pathlib import Path
 
-# =========================
-# Redis
-# =========================
-r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+# # =========================
+# # Redis
+# # =========================
+# r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
 
-# =========================
-# Paths
-# =========================
-PYTHON_EXE = r"C:\Users\LOQ\Desktop\Matchify Laravel\venv\Scripts\python.exe"
-INFERENCE_SCRIPT = r"C:\Users\LOQ\Desktop\Matchify Laravel\python\video_ai\service\run_inference.py"
+# # =========================
+# # Paths
+# # =========================
+# PYTHON_EXE = r"C:\Users\LOQ\Desktop\Matchify Laravel\venv\Scripts\python.exe"
+# INFERENCE_SCRIPT = r"C:\Users\LOQ\Desktop\Matchify Laravel\python\video_ai\service\run_inference.py"
 
-HIGHLIGHT_OUTPUT_BASE = Path(
-    "C:/Users/LOQ/Desktop/Matchify Laravel/storage/app/video_ai/highlights"
-)
+# HIGHLIGHT_OUTPUT_BASE = Path(
+#     "C:/Users/LOQ/Desktop/Matchify Laravel/storage/app/video_ai/highlights"
+# )
 
-print(" Highlight Worker running...")
+# print(" Highlight Worker running...")
 
-# =========================
-# Worker Loop
-# =========================
-while True:
-    job = r.brpop("highlight_jobs", timeout=1)
-    if not job:
-        continue
+# # =========================
+# # Worker Loop
+# # =========================
+# while True:
+#     job = r.brpop("highlight_jobs", timeout=1)
+#     if not job:
+#         continue
 
-    _, payload = job
-    data = json.loads(payload)
+#     _, payload = job
+#     data = json.loads(payload)
 
-    job_id       = data["job_id"]
-    clips_dir    = data["clips_dir"]
-    summary_type = data.get("summary_type", "goals")
-    summary_len  = data.get("summary_length", "short")
-    user_id      = data.get("user_id")
+#     job_id       = data["job_id"]
+#     clips_dir    = data["clips_dir"]
+#     summary_type = data.get("summary_type", "goals")
+#     summary_len  = data.get("summary_length", "short")
+#     user_id      = data.get("user_id")
 
-    try:
-        # =========================
-        # Init job status
-        # =========================
-        r.set(f"job:{job_id}:status", "processing")
-        r.set(f"job:{job_id}:stage", "loading_model")
-        r.set(f"job:{job_id}:progress", 5)
+#     try:
+#         # =========================
+#         # Init job status
+#         # =========================
+#         r.set(f"job:{job_id}:status", "processing")
+#         r.set(f"job:{job_id}:stage", "loading_model")
+#         r.set(f"job:{job_id}:progress", 5)
 
-        # =========================
-        # Output directory
-        # =========================
-        highlight_dir = HIGHLIGHT_OUTPUT_BASE / str(job_id)
-        highlight_dir.mkdir(parents=True, exist_ok=True)
+#         # =========================
+#         # Output directory
+#         # =========================
+#         highlight_dir = HIGHLIGHT_OUTPUT_BASE / str(job_id)
+#         highlight_dir.mkdir(parents=True, exist_ok=True)
 
-        # =========================
-        # Run inference (بدون --output_dir)
-        # =========================
-        process = subprocess.Popen(
-            [
-                PYTHON_EXE,
-                INFERENCE_SCRIPT,
-                f"--clips_dir={clips_dir}",
-                f"--summary_type={summary_type}",
-                f"--summary_length={summary_len}",
-                f"--job_id={job_id}",
-            ],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            text=True
-        )
+#         # =========================
+#         # Run inference (بدون --output_dir)
+#         # =========================
+#         process = subprocess.Popen(
+#             [
+#                 PYTHON_EXE,
+#                 INFERENCE_SCRIPT,
+#                 f"--clips_dir={clips_dir}",
+#                 f"--summary_type={summary_type}",
+#                 f"--summary_length={summary_len}",
+#                 f"--job_id={job_id}",
+#             ],
+#             stdout=subprocess.PIPE,
+#             stderr=subprocess.PIPE,
+#             text=True
+#         )
 
-        stdout, stderr = process.communicate()
+#         stdout, stderr = process.communicate()
 
-        if process.returncode != 0:
-            raise RuntimeError(stderr)
+#         if process.returncode != 0:
+#             raise RuntimeError(stderr)
 
-        # =========================
-        # Save result (relative path for Laravel)
-        # =========================
-        result = {
-            "job_id": job_id,
-            "user_id": user_id,
-            "clips_dir": clips_dir,  # ✅ مهم لحفظه في DB
-            "summary_type": summary_type,
-            "summary_length": summary_len,
-            "video_path": f"video_ai/highlights/{job_id}/highlight.mp4"
-        }
+#         # =========================
+#         # Save result (relative path for Laravel)
+#         # =========================
+#         result = {
+#             "job_id": job_id,
+#             "user_id": user_id,
+#             "clips_dir": clips_dir,  # ✅ مهم لحفظه في DB
+#             "summary_type": summary_type,
+#             "summary_length": summary_len,
+#             "video_path": f"video_ai/highlights/{job_id}/highlight.mp4"
+#         }
 
-        r.set(f"job:{job_id}:result", json.dumps(result))
-        r.set(f"job:{job_id}:progress", 100)
-        r.set(f"job:{job_id}:stage", "completed")
-        r.set(f"job:{job_id}:status", "completed")
+#         r.set(f"job:{job_id}:result", json.dumps(result))
+#         r.set(f"job:{job_id}:progress", 100)
+#         r.set(f"job:{job_id}:stage", "completed")
+#         r.set(f"job:{job_id}:status", "completed")
 
-        print(f" Highlight job {job_id} completed")
+#         print(f" Highlight job {job_id} completed")
 
-    except Exception as e:
-        r.set(f"job:{job_id}:status", "failed")
-        r.set(f"job:{job_id}:stage", "error")
-        r.set(f"job:{job_id}:progress", 0)
-        r.set(f"job:{job_id}:error", str(e))
-        print(f" Highlight job {job_id} failed:", e)
+#     except Exception as e:
+#         r.set(f"job:{job_id}:status", "failed")
+#         r.set(f"job:{job_id}:stage", "error")
+#         r.set(f"job:{job_id}:progress", 0)
+#         r.set(f"job:{job_id}:error", str(e))
+#         print(f" Highlight job {job_id} failed:", e)
 
 
 # import sys
@@ -229,7 +229,7 @@ while True:
 #     SUMMARY_TYPE = args.summary_type
 #     SUMMARY_LENGTH = args.summary_length
 
-#     OUTPUT_DIR = os.path.join("C:/Users/LOQ/Desktop/Matchify Laravel/python/temp_videos")
+#     OUTPUT_DIR = os.path.join("C:/Users/LOQ/Desktop/Matchify Laravel/storage/app/public/video_ai/highlights")
 #     os.makedirs(OUTPUT_DIR, exist_ok=True)
 #     FINAL_HIGHLIGHT = os.path.join(OUTPUT_DIR, f"{JOB_ID}.mp4")
 
@@ -310,3 +310,128 @@ while True:
 #     update(JOB_ID, "result", json.dumps(result_json))
 
 #     print(f"[INFO] Highlight video processed. JSON ready for job {JOB_ID}")
+
+
+
+import json
+import redis
+import subprocess
+from pathlib import Path
+import sys
+import re
+
+# =========================
+# Redis
+# =========================
+r = redis.Redis(host="127.0.0.1", port=6379, decode_responses=True)
+
+# =========================
+# Paths
+# =========================
+PYTHON_EXE = r"C:\Users\LOQ\Desktop\Matchify Laravel\venv\Scripts\python.exe"
+INFERENCE_SCRIPT = r"C:\Users\LOQ\Desktop\Matchify Laravel\python\video_ai\service\run_inference.py"
+
+HIGHLIGHT_OUTPUT_BASE = Path(
+    "C:/Users/LOQ/Desktop/Matchify Laravel/storage/app/public/video_ai/highlights"
+)
+
+# =========================
+# Base URL for frontend access
+# =========================
+BASE_URL = "http://localhost"  # عدل للدومين الحقيقي عندك إذا مختلف
+
+print("Highlight Worker started...", file=sys.stderr)
+
+# =========================
+# Worker Loop
+# =========================
+while True:
+    job = r.brpop("highlight_jobs", timeout=1)
+    if not job:
+        continue
+
+    _, payload = job
+    data = json.loads(payload)
+
+    job_id       = data["job_id"]
+    clips_dir    = data["clips_dir"]
+    video_id     = data["video_id"]
+    summary_type = data.get("summary_type", "اهداف")
+    summary_len  = data.get("summary_length", "قصير")
+
+    try:
+        # =========================
+        # Init job status
+        # =========================
+        r.set(f"job:{job_id}:status", "processing")
+        r.set(f"job:{job_id}:stage", "loading_model")
+        r.set(f"job:{job_id}:progress", 5)
+
+        # =========================
+        # Output directory
+        # =========================
+        highlight_dir = HIGHLIGHT_OUTPUT_BASE / str(job_id)
+        highlight_dir.mkdir(parents=True, exist_ok=True)
+
+        # =========================
+        # Run inference script (Python ML pipeline)
+        # =========================
+        process = subprocess.Popen(
+            [
+                PYTHON_EXE,
+                INFERENCE_SCRIPT,
+                f"--clips_dir={clips_dir}",
+                f"--job_id={job_id}",
+                f"--video_id={video_id}",
+                f"--summary_type={summary_type}",
+                f"--summary_length={summary_len}",
+            ],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True
+        )
+        stdout, stderr = process.communicate()
+
+        if process.returncode != 0:
+            raise RuntimeError(stderr)
+
+        # =========================
+        # Extract JSON safely
+        # =========================
+        match = re.search(r'\{.*\}', stdout, re.DOTALL)
+        if match:
+            highlights_data = json.loads(match.group(0))
+        else:
+            raise ValueError(f"No valid JSON found in script output:\n{stdout}\n{stderr}")
+
+        # =========================
+        # Save result with HTTP paths
+        # =========================
+        result = {
+            "job_id": job_id,
+            "video_id": video_id,
+            "clips_dir": clips_dir,
+            "summary_type": summary_type,
+            "summary_length": summary_len,
+            "video_path": f"{BASE_URL}/storage/video_ai/highlights/{job_id}/highlight.mp4",
+            "highlights": []
+        }
+
+        # تعديل كل highlight ليكون HTTP
+        for h in highlights_data.get("highlights", []):
+            h["highlight_video"] = f"{BASE_URL}/storage/video_ai/highlights/{job_id}/highlight.mp4"
+            result["highlights"].append(h)
+
+        r.set(f"job:{job_id}:result", json.dumps(result))
+        r.set(f"job:{job_id}:progress", 100)
+        r.set(f"job:{job_id}:stage", "completed")
+        r.set(f"job:{job_id}:status", "completed")
+
+        print(f"Highlight job {job_id} completed", file=sys.stderr)
+
+    except Exception as e:
+        r.set(f"job:{job_id}:status", "failed")
+        r.set(f"job:{job_id}:stage", "error")
+        r.set(f"job:{job_id}:progress", 0)
+        r.set(f"job:{job_id}:error", str(e))
+        print(f"Highlight job {job_id} failed: {e}", file=sys.stderr)

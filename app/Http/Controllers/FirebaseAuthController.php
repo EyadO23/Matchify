@@ -9,31 +9,12 @@ use Kreait\Firebase\Factory;
 use Kreait\Firebase\Exception\Auth\InvalidIdToken;
 use App\Models\User;
 use Kreait\Firebase\Contract\Auth;
+use Kreait\Firebase\Exception\AuthException;
 
 class FirebaseAuthController extends Controller
 {
     public function login(Request $request)
     {
-
-        /* if (app()->environment('local') && $request->id_token === 'test_firebase_token') {
-        $user = User::firstOrCreate(
-            ['email' => 'test@example.com'],
-            [
-                'name' => 'Test User',
-                'username' => 'test_user_' . Str::random(6),
-                'password' => Hash::make(Str::random(32)),
-                'email_verified_at' => now(),
-            ]
-        );
-
-        $token = $user->createToken('test')->plainTextToken;
-        return response()->json([
-            'success' => true,
-            'user' => $user,
-            'token' => $token
-        ]);
-    }*/
-    //
         $request->validate([
             'id_token' => 'required|string',
         ]);
@@ -80,7 +61,7 @@ class FirebaseAuthController extends Controller
                 'token' => $token
             ]);
 
-        } catch (InvalidIdToken $e) {
+        } catch (AuthException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'الرمز غير صالح أو منتهي الصلاحية.'
