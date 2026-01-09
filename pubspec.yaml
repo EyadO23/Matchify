@@ -25,7 +25,11 @@ dependencies:
   dio: ^5.9.0
   flutter_native_splash: ^2.4.7
   permission_handler: ^12.0.1
+  firebase_messaging: ^15.2.10
+  workmanager: ^0.9.0+3
  
+
+
 
 
 dev_dependencies:
@@ -38,17 +42,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/google_logo.png
-    - assets/background_image.png
-    - assets/images/logo.jpg
-    - assets/images/splash_bg.png
-    - assets/images/background.png
-    - assets/images/backgroundAi.jpg
-    - assets/images/backgr.jpg
-    - assets/images/back.png
-    - assets/images/back.jpg
-    - assets/images/BackG.jpg
     - assets/images/final.jpg
-    - assets/images/splash.jpg
+  
 
 
 

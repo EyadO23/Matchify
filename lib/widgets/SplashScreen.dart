@@ -18,7 +18,6 @@ class _SplashScreenState extends State<SplashScreen>
   void initState() {
     super.initState();
 
-    // أنيميشن لظهور الشعار بهدوء
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1500),
@@ -26,7 +25,6 @@ class _SplashScreenState extends State<SplashScreen>
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
     _controller.forward();
 
-    // الانتقال للشاشة التالية بعد 3 ثوانٍ
     Timer(const Duration(seconds: 3), () {
       if (mounted) {
         Navigator.pushReplacement(
@@ -49,25 +47,15 @@ class _SplashScreenState extends State<SplashScreen>
       body: Stack(
         fit: StackFit.expand,
         children: [
-          // 1. صورة الخلفية (السبلاش الرائعة)
-          Image.asset(
-            "assets/images/final.jpg", // قم بتسمية صورة السبلاش بهذا الاسم
-            // "assets/images/splash.jpg", // قم بتسمية صورة السبلاش بهذا الاسم
-            // 'assets/images/splash_bg.png', // قم بتسمية صورة السبلاش بهذا الاسم
-            fit: BoxFit.cover,
-          ),
+          Image.asset("assets/images/final.jpg", fit: BoxFit.cover),
 
-          // 2. طبقة تظليل خفيفة لجعل المحتوى أوضح
           Container(color: Colors.black.withOpacity(0.3)),
 
-          // 3. الشعار والنص في المنتصف
           FadeTransition(
             opacity: _animation,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // اللوجو الصغير
-                // Image.asset('assets/images/logo.jpg', width: 120, height: 120),
                 const SizedBox(height: 20),
                 const Text(
                   "MATCHIFY",
@@ -97,14 +85,13 @@ class _SplashScreenState extends State<SplashScreen>
             ),
           ),
 
-          // 4. مؤشر التحميل في الأسفل
           const Positioned(
             bottom: 60,
             left: 0,
             right: 0,
             child: Center(
               child: CircularProgressIndicator(
-                color: Color(0xFF8A2BE2),
+                color: Color.fromARGB(255, 137, 182, 217),
                 strokeWidth: 2,
               ),
             ),

@@ -1,470 +1,3 @@
-// import 'dart:developer';
-// import 'package:flutter/material.dart';
-// import 'package:matchifiy/models/team_model.dart';
-// import 'package:matchifiy/services/favorite_team_service.dart';
-// import 'package:matchifiy/services/token_storage.dart';
-// import 'package:matchifiy/widgets/CustomBackgroundScaffold.dart';
-
-// class FavoriteTeamScreen extends StatefulWidget {
-//   const FavoriteTeamScreen({super.key});
-
-//   @override
-//   State<FavoriteTeamScreen> createState() => _FavoriteTeamScreenState();
-// }
-
-// class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
-//   final FavoriteTeamService _favoriteService = FavoriteTeamService();
-
-//   List<Team> _teams = [];
-//   Team? _selectedTeam;
-
-//   bool _isLoading = true;
-//   bool _isSaving = false;
-//   String ip = TokenStorage.getIp();
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadTeams();
-//   }
-
-//   Future<void> _loadTeams() async {
-//     try {
-//       final teams = await _favoriteService.getTeams();
-//       log("Teams ,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,,: $teams");
-//       setState(() {
-//         _teams = teams;
-//         _isLoading = false;
-//       });
-//     } catch (e) {
-//       log("Error loading teams: $e");
-//       setState(() => _isLoading = false);
-//     }
-//   }
-
-//   // Future<void> _saveTeam() async {
-//   //   if (_selectedTeam == null) return;
-
-//   //   setState(() => _isSaving = true);
-
-//   //   try {
-//   //     await _favoriteService.saveFavoriteTeam(_selectedTeam!.id);
-
-//   //     if (!mounted) return;
-
-//   //     ScaffoldMessenger.of(context).showSnackBar(
-//   //       const SnackBar(content: Text("تم حفظ الفريق المفضل بنجاح")),
-//   //     );
-
-//   //     Navigator.pop(context);
-//   //   } catch (e) {
-//   //     setState(() => _isSaving = false);
-//   //     ScaffoldMessenger.of(
-//   //       context,
-//   //     ).showSnackBar(SnackBar(content: Text("حدث خطأ: $e")));
-//   //   }
-//   // }
-//   Future<void> _saveTeam() async {
-//     if (_selectedTeam == null) return;
-
-//     setState(() => _isSaving = true);
-
-//     try {
-//       final savedTeam = await _favoriteService.saveFavoriteTeam(
-//         _selectedTeam!.id,
-//       );
-
-//       if (!mounted) return;
-
-//       if (savedTeam != null) {
-//         setState(() {
-//           _selectedTeam = savedTeam;
-//           // _currentFavoriteTeam = savedTeam;
-//           // _currentFavoriteTeam = savedTeam;
-//         });
-//         ScaffoldMessenger.of(context).showSnackBar(
-//           const SnackBar(content: Text("تم حفظ الفريق المفضل بنجاح")),
-//         );
-//       }
-
-//       Navigator.pop(context);
-//     } catch (e) {
-//       setState(() => _isSaving = false);
-//       ScaffoldMessenger.of(
-//         context,
-//       ).showSnackBar(SnackBar(content: Text("حدث خطأ: $e")));
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-
-//     return CustomBackgroundScaffold(
-//       appBar: AppBar(
-//         title: Text(isArabic ? "فريقك المفضل" : "Favorite Team"),
-//         backgroundColor: Colors.transparent,
-//         elevation: 0,
-//       ),
-//       body:
-//           _isLoading
-//               ? const Center(
-//                 child: CircularProgressIndicator(
-//                   color: Color.fromARGB(255, 114, 116, 228),
-//                 ),
-//               )
-//               : Padding(
-//                 padding: const EdgeInsets.all(20),
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     Text(
-//                       isArabic
-//                           ? "اختر ناديك المفضل لمتابعة أخباره:"
-//                           : "Select your favorite club:",
-//                       style: const TextStyle(
-//                         color: Colors.white70,
-//                         fontSize: 16,
-//                       ),
-//                     ),
-//                     const SizedBox(height: 20),
-
-//                     /// قائمة الفرق
-//                     Expanded(
-//                       child: ListView.builder(
-//                         itemCount: _teams.length,
-//                         itemBuilder: (context, index) {
-//                           final team = _teams[index];
-//                           final isSelected = _selectedTeam?.id == team.id;
-
-//                           return Container(
-//                             margin: const EdgeInsets.only(bottom: 10),
-//                             decoration: BoxDecoration(
-//                               color:
-//                                   isSelected
-//                                       ? const Color.fromARGB(
-//                                         255,
-//                                         114,
-//                                         116,
-//                                         228,
-//                                       ).withOpacity(0.2)
-//                                       : const Color(0xFF28283D),
-//                               borderRadius: BorderRadius.circular(12),
-//                               border: Border.all(
-//                                 color:
-//                                     isSelected
-//                                         ? const Color.fromARGB(
-//                                           255,
-//                                           114,
-//                                           116,
-//                                           228,
-//                                         )
-//                                         : Colors.transparent,
-//                                 width: 2,
-//                               ),
-//                             ),
-//                             child: ListTile(
-//                               leading: Image.network(
-//                                 // '$ip/storage/${team.logoUrl}',
-//                                 '$ip/${team.logoUrl}',
-//                                 // '$ip/public/${team.logoUrl}',
-//                                 width: 40,
-//                                 height: 40,
-//                                 fit: BoxFit.contain,
-//                                 errorBuilder:
-//                                     (_, __, ___) => const Icon(
-//                                       Icons.shield,
-//                                       color: Colors.white54,
-//                                     ),
-//                               ),
-//                               title: Text(
-//                                 team.name,
-//                                 style: const TextStyle(color: Colors.white),
-//                               ),
-//                               trailing: Icon(
-//                                 isSelected
-//                                     ? Icons.check_circle
-//                                     : Icons.circle_outlined,
-//                                 color:
-//                                     isSelected
-//                                         ? const Color.fromARGB(
-//                                           255,
-//                                           114,
-//                                           116,
-//                                           228,
-//                                         )
-//                                         : Colors.white24,
-//                               ),
-//                               onTap: () => setState(() => _selectedTeam = team),
-//                             ),
-//                           );
-//                         },
-//                       ),
-//                     ),
-
-//                     const SizedBox(height: 20),
-
-//                     /// زر الحفظ
-//                     ElevatedButton(
-//                       onPressed: _isSaving ? null : _saveTeam,
-//                       style: ElevatedButton.styleFrom(
-//                         backgroundColor: const Color.fromARGB(
-//                           255,
-//                           114,
-//                           116,
-//                           228,
-//                         ),
-//                         foregroundColor: Colors.white,
-//                         minimumSize: const Size(double.infinity, 50),
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(12),
-//                         ),
-//                       ),
-//                       child:
-//                           _isSaving
-//                               ? const SizedBox(
-//                                 width: 22,
-//                                 height: 22,
-//                                 child: CircularProgressIndicator(
-//                                   color: Colors.white,
-//                                   strokeWidth: 2,
-//                                 ),
-//                               )
-//                               : Text(
-//                                 isArabic ? "حفظ الفريق" : "Save Team",
-//                                 style: const TextStyle(
-//                                   fontSize: 18,
-//                                   fontWeight: FontWeight.bold,
-//                                 ),
-//                               ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//     );
-//   }
-// }
-
-// // import 'dart:developer';
-
-// // import 'package:flutter/material.dart';
-// // import 'package:matchifiy/services/favorite_team_service.dart';
-// // import 'package:matchifiy/widgets/CustomBackgroundScaffold.dart';
-
-// // class FavoriteTeamScreen extends StatefulWidget {
-// //   const FavoriteTeamScreen({super.key});
-
-// //   @override
-// //   State<FavoriteTeamScreen> createState() => _FavoriteTeamScreenState();
-// // }
-
-// // class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
-// //   final FavoriteTeamService _favoriteService = FavoriteTeamService();
-
-// //   String? _currentFavoriteTeam;
-// //   String? _selectedTeam;
-// //   bool _isLoading = true;
-// //   bool _isSaving = false;
-
-// //   // قائمة تجريبية للأندية
-// //   final List<String> _teams = [
-// //     "Real Madrid",
-// //     "Barcelona",
-// //     "Manchester City",
-// //     "Liverpool",
-// //     "Bayern Munich",
-// //     "Al Hilal",
-// //     "Al Nassr",
-// //     "Al Ahly",
-// //   ];
-
-// //   @override
-// //   void initState() {
-// //     super.initState();
-// //     _loadCurrentTeam();
-// //   }
-
-// //   Future<void> _loadCurrentTeam() async {
-// //     try {
-// //       final team = await _favoriteService.getTeams();
-// //       // final team = await _favoriteService.getFavoriteTeam();
-// //       log(team.toString());
-// //       setState(() {
-// //         _currentFavoriteTeam = (team != null && team.isNotEmpty) ? team : null;
-// //         _selectedTeam = _currentFavoriteTeam;
-// //         _isLoading = false;
-// //       });
-// //     } catch (e) {
-// //       setState(() => _isLoading = false);
-// //     }
-// //   }
-
-// //   Future<void> _saveTeam() async {
-// //     if (_selectedTeam == null) return;
-
-// //     setState(() => _isSaving = true);
-// //     try {
-// //       await _favoriteService.saveFavoriteTeam(_selectedTeam!);
-// //       if (!mounted) return;
-
-// //       ScaffoldMessenger.of(
-// //         context,
-// //       ).showSnackBar(const SnackBar(content: Text("تمت العملية بنجاح")));
-// //       Navigator.pop(context);
-// //     } catch (e) {
-// //       setState(() => _isSaving = false);
-// //       ScaffoldMessenger.of(
-// //         context,
-// //       ).showSnackBar(SnackBar(content: Text("خطأ: $e")));
-// //     }
-// //   }
-
-// //   @override
-// //   Widget build(BuildContext context) {
-// //     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-
-// //     // تحديد نص الزر بناءً على وجود فريق مفضل مسبقاً أم لا
-// //     final String buttonText =
-// //         _currentFavoriteTeam == null
-// //             ? (isArabic ? "حفظ الفريق" : "Save Team")
-// //             : (isArabic ? "تعديل الفريق" : "Edit Team");
-
-// //     return CustomBackgroundScaffold(
-// //       // return Scaffold(
-// //       // backgroundColor: const Color(0xFF1E1E2E),
-// //       appBar: AppBar(
-// //         title: Text(isArabic ? "فريقك المفضل" : "Favorite Team"),
-// //         backgroundColor: Colors.transparent,
-// //         // backgroundColor: const Color.fromARGB(255, 114, 116, 228),
-// //         // backgroundColor: const Color(0xFF1E1E2E),
-// //         elevation: 0,
-// //       ),
-// //       body:
-// //           _isLoading
-// //               ? const Center(
-// //                 child: CircularProgressIndicator(
-// //                   color: Color.fromARGB(255, 114, 116, 228),
-// //                 ),
-// //                 // child: CircularProgressIndicator(color: Color(0xFF8A2BE2)),
-// //               )
-// //               : Padding(
-// //                 padding: const EdgeInsets.all(20.0),
-// //                 child: Column(
-// //                   crossAxisAlignment: CrossAxisAlignment.stretch,
-// //                   children: [
-// //                     Text(
-// //                       isArabic
-// //                           ? "اختر ناديك المفضل لمتابعة أخباره:"
-// //                           : "Select your favorite club:",
-// //                       style: const TextStyle(
-// //                         color: Colors.white70,
-// //                         fontSize: 16,
-// //                       ),
-// //                     ),
-// //                     const SizedBox(height: 20),
-// //                     Expanded(
-// //                       child: ListView.builder(
-// //                         itemCount: _teams.length,
-// //                         itemBuilder: (context, index) {
-// //                           final team = _teams[index];
-// //                           final isSelected = _selectedTeam == team;
-// //                           return Container(
-// //                             margin: const EdgeInsets.only(bottom: 10),
-// //                             decoration: BoxDecoration(
-// //                               color:
-// //                                   isSelected
-// //                                       ? const Color.fromARGB(
-// //                                         255,
-// //                                         114,
-// //                                         116,
-// //                                         228,
-// //                                       ).withOpacity(0.2)
-// //                                       // ? const Color(0xFF8A2BE2).withOpacity(0.2)
-// //                                       : const Color(0xFF28283D),
-// //                               borderRadius: BorderRadius.circular(12),
-// //                               border: Border.all(
-// //                                 color:
-// //                                     isSelected
-// //                                         ? const Color.fromARGB(
-// //                                           255,
-// //                                           114,
-// //                                           116,
-// //                                           228,
-// //                                         )
-// //                                         // ? const Color(0xFF8A2BE2)
-// //                                         : Colors.transparent,
-// //                                 width: 2,
-// //                               ),
-// //                             ),
-// //                             child: ListTile(
-// //                               title: Text(
-// //                                 team,
-// //                                 style: const TextStyle(color: Colors.white),
-// //                               ),
-// //                               leading: Icon(
-// //                                 isSelected
-// //                                     ? Icons.check_circle
-// //                                     : Icons.circle_outlined,
-// //                                 color:
-// //                                     isSelected
-// //                                         ? const Color.fromARGB(
-// //                                           255,
-// //                                           114,
-// //                                           116,
-// //                                           228,
-// //                                         )
-// //                                         // ? const Color(0xFF8A2BE2)
-// //                                         : Colors.white24,
-// //                               ),
-// //                               onTap: () => setState(() => _selectedTeam = team),
-// //                             ),
-// //                           );
-// //                         },
-// //                       ),
-// //                     ),
-// //                     const SizedBox(height: 20),
-// //                     ElevatedButton(
-// //                       onPressed: _isSaving ? null : _saveTeam,
-// //                       style: ElevatedButton.styleFrom(
-// //                         backgroundColor: const Color.fromARGB(
-// //                           255,
-// //                           114,
-// //                           116,
-// //                           228,
-// //                         ),
-// //                         // backgroundColor: const Color(0xFF8A2BE2),
-// //                         foregroundColor: Colors.white,
-// //                         minimumSize: const Size(double.infinity, 50),
-// //                         shape: RoundedRectangleBorder(
-// //                           borderRadius: BorderRadius.circular(12),
-// //                         ),
-// //                       ),
-// //                       child:
-// //                           _isSaving
-// //                               ? const SizedBox(
-// //                                 width: 20,
-// //                                 height: 20,
-// //                                 child: CircularProgressIndicator(
-// //                                   color: Colors.white,
-// //                                   strokeWidth: 2,
-// //                                 ),
-// //                               )
-// //                               : Text(
-// //                                 buttonText,
-// //                                 style: const TextStyle(
-// //                                   fontSize: 18,
-// //                                   fontWeight: FontWeight.bold,
-// //                                 ),
-// //                               ),
-// //                     ),
-// //                   ],
-// //                 ),
-// //               ),
-// //     );
-// //   }
-// // }
-
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:matchifiy/models/team_model.dart';
 import 'package:matchifiy/services/favorite_team_service.dart';
@@ -500,13 +33,15 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
       final teams = await _favoriteService.getTeams();
       final favoriteIds = await _favoriteService.getFavoriteTeamIds();
 
+      if (!mounted) return;
+
       setState(() {
         _teams = teams;
-        _selectedTeamIds = favoriteIds; // 🔥 المختارة سابقًا
+        _selectedTeamIds = favoriteIds;
         _isLoading = false;
       });
     } catch (e) {
-      log("Error loading teams: $e");
+      if (!mounted) return;
       setState(() => _isLoading = false);
     }
   }
@@ -517,7 +52,6 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
     setState(() => _isSaving = true);
 
     try {
-      /// 🔥 نرسل القديم + الجديد معًا
       await _favoriteService.resetFavoriteTeams(_selectedTeamIds);
 
       if (!mounted) return;
@@ -528,6 +62,7 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
 
       Navigator.pop(context);
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(
         context,
@@ -541,15 +76,24 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
 
     return CustomBackgroundScaffold(
       appBar: AppBar(
-        title: Text(isArabic ? "فرقك المفضلة" : "Favorite Teams"),
+        title: Text(
+          isArabic ? "فرقك المفضلة" : "Favorite Teams",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+          ),
+          // selectionColor: Colors.black,
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        foregroundColor: Colors.white,
       ),
       body:
           _isLoading
               ? const Center(
                 child: CircularProgressIndicator(
-                  color: Color.fromARGB(255, 114, 116, 228),
+                  color: Color.fromARGB(255, 137, 182, 217),
                 ),
               )
               : Padding(
@@ -562,8 +106,9 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
                           ? "اختر فريقًا أو أكثر لمتابعة أخبارهم:"
                           : "Select one or more teams to follow:",
                       style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 16,
+                        color: Colors.white,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -581,23 +126,13 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
                             decoration: BoxDecoration(
                               color:
                                   isSelected
-                                      ? const Color.fromARGB(
-                                        255,
-                                        114,
-                                        116,
-                                        228,
-                                      ).withOpacity(0.2)
+                                      ? Color.fromARGB(255, 137, 182, 217)
                                       : const Color(0xFF28283D),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color:
                                     isSelected
-                                        ? const Color.fromARGB(
-                                          255,
-                                          114,
-                                          116,
-                                          228,
-                                        )
+                                        ? Color.fromARGB(255, 137, 182, 217)
                                         : Colors.transparent,
                                 width: 2,
                               ),
@@ -649,7 +184,6 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
 
                     const SizedBox(height: 20),
 
-                    /// زر الحفظ
                     ElevatedButton(
                       onPressed:
                           _isSaving || _selectedTeamIds.isEmpty
@@ -694,245 +228,3 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
     );
   }
 }
-
-// import 'dart:developer';
-// import 'package:flutter/material.dart';
-// import 'package:matchifiy/models/team_model.dart';
-// import 'package:matchifiy/services/favorite_team_service.dart';
-// import 'package:matchifiy/services/token_storage.dart';
-// import 'package:matchifiy/widgets/CustomBackgroundScaffold.dart';
-
-// class FavoriteTeamScreen extends StatefulWidget {
-//   const FavoriteTeamScreen({super.key});
-
-//   @override
-//   State<FavoriteTeamScreen> createState() => _FavoriteTeamScreenState();
-// }
-
-// class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
-//   final FavoriteTeamService _favoriteService = FavoriteTeamService();
-
-//   List<Team> _teams = [];
-//   List<int> _selectedTeamIds = [];
-
-//   bool _isLoading = true;
-//   bool _isSaving = false;
-
-//   String ip = TokenStorage.getIp();
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _loadTeams();
-//   }
-
-//   // Future<void> _loadTeams() async {
-//   //   try {
-//   //     final teams = await _favoriteService.getTeams();
-//   //     setState(() {
-//   //       _teams = teams;
-//   //       _isLoading = false;
-//   //     });
-//   //   } catch (e) {
-//   //     log("Error loading teams: $e");
-//   //     setState(() => _isLoading = false);
-//   //   }
-//   // }
-//   Future<void> _loadTeams() async {
-//     try {
-//       final teams = await _favoriteService.getTeams();
-//       final favoriteIds = await _favoriteService.getFavoriteTeamIds();
-
-//       setState(() {
-//         _teams = teams;
-//         _selectedTeamIds = favoriteIds; //  هنا السحر
-//         _isLoading = false;
-//       });
-//     } catch (e) {
-//       log("Error loading teams: $e");
-//       setState(() => _isLoading = false);
-//     }
-//   }
-
-//   Future<void> _saveTeams() async {
-//     if (_selectedTeamIds.isEmpty) return;
-
-//     setState(() => _isSaving = true);
-
-//     try {
-//       await _favoriteService.saveFavoriteTeams(_selectedTeamIds);
-
-//       if (!mounted) return;
-
-//       ScaffoldMessenger.of(context).showSnackBar(
-//         const SnackBar(content: Text("تم حفظ الفرق المفضلة بنجاح")),
-//       );
-
-//       Navigator.pop(context);
-//     } catch (e) {
-//       setState(() => _isSaving = false);
-//       ScaffoldMessenger.of(
-//         context,
-//       ).showSnackBar(SnackBar(content: Text("حدث خطأ: $e")));
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     final isArabic = Localizations.localeOf(context).languageCode == 'ar';
-
-//     return CustomBackgroundScaffold(
-//       appBar: AppBar(
-//         title: Text(isArabic ? "فرقك المفضلة" : "Favorite Teams"),
-//         backgroundColor: Colors.transparent,
-//         elevation: 0,
-//       ),
-//       body:
-//           _isLoading
-//               ? const Center(
-//                 child: CircularProgressIndicator(
-//                   color: Color.fromARGB(255, 114, 116, 228),
-//                 ),
-//               )
-//               : Padding(
-//                 padding: const EdgeInsets.all(20),
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   children: [
-//                     Text(
-//                       isArabic
-//                           ? "اختر فريقًا أو أكثر لمتابعة أخبارهم:"
-//                           : "Select one or more teams to follow:",
-//                       style: const TextStyle(
-//                         color: Colors.white70,
-//                         fontSize: 16,
-//                       ),
-//                     ),
-//                     const SizedBox(height: 20),
-
-//                     /// قائمة الفرق (اختيار متعدد)
-//                     Expanded(
-//                       child: ListView.builder(
-//                         itemCount: _teams.length,
-//                         itemBuilder: (context, index) {
-//                           final team = _teams[index];
-//                           final isSelected = _selectedTeamIds.contains(team.id);
-
-//                           return Container(
-//                             margin: const EdgeInsets.only(bottom: 10),
-//                             decoration: BoxDecoration(
-//                               color:
-//                                   isSelected
-//                                       ? const Color.fromARGB(
-//                                         255,
-//                                         114,
-//                                         116,
-//                                         228,
-//                                       ).withOpacity(0.2)
-//                                       : const Color(0xFF28283D),
-//                               borderRadius: BorderRadius.circular(12),
-//                               border: Border.all(
-//                                 color:
-//                                     isSelected
-//                                         ? const Color.fromARGB(
-//                                           255,
-//                                           114,
-//                                           116,
-//                                           228,
-//                                         )
-//                                         : Colors.transparent,
-//                                 width: 2,
-//                               ),
-//                             ),
-//                             child: ListTile(
-//                               leading: Image.network(
-//                                 '$ip/${team.logoUrl}',
-//                                 width: 40,
-//                                 height: 40,
-//                                 fit: BoxFit.contain,
-//                                 errorBuilder:
-//                                     (_, __, ___) => const Icon(
-//                                       Icons.shield,
-//                                       color: Colors.white54,
-//                                     ),
-//                               ),
-//                               title: Text(
-//                                 team.name,
-//                                 style: const TextStyle(color: Colors.white),
-//                               ),
-//                               trailing: Icon(
-//                                 isSelected
-//                                     ? Icons.check_circle
-//                                     : Icons.circle_outlined,
-//                                 color:
-//                                     isSelected
-//                                         ? const Color.fromARGB(
-//                                           255,
-//                                           114,
-//                                           116,
-//                                           228,
-//                                         )
-//                                         : Colors.white24,
-//                               ),
-//                               onTap: () {
-//                                 setState(() {
-//                                   if (isSelected) {
-//                                     _selectedTeamIds.remove(team.id);
-//                                   } else {
-//                                     _selectedTeamIds.add(team.id);
-//                                   }
-//                                 });
-//                               },
-//                             ),
-//                           );
-//                         },
-//                       ),
-//                     ),
-
-//                     const SizedBox(height: 20),
-
-//                     /// زر الحفظ
-//                     ElevatedButton(
-//                       onPressed:
-//                           _isSaving || _selectedTeamIds.isEmpty
-//                               ? null
-//                               : _saveTeams,
-//                       style: ElevatedButton.styleFrom(
-//                         backgroundColor: const Color.fromARGB(
-//                           255,
-//                           114,
-//                           116,
-//                           228,
-//                         ),
-//                         foregroundColor: Colors.white,
-//                         minimumSize: const Size(double.infinity, 50),
-//                         shape: RoundedRectangleBorder(
-//                           borderRadius: BorderRadius.circular(12),
-//                         ),
-//                       ),
-//                       child:
-//                           _isSaving
-//                               ? const SizedBox(
-//                                 width: 22,
-//                                 height: 22,
-//                                 child: CircularProgressIndicator(
-//                                   color: Colors.white,
-//                                   strokeWidth: 2,
-//                                 ),
-//                               )
-//                               : Text(
-//                                 isArabic
-//                                     ? "حفظ الفرق المختارة"
-//                                     : "Save Selected Teams",
-//                                 style: const TextStyle(
-//                                   fontSize: 18,
-//                                   fontWeight: FontWeight.bold,
-//                                 ),
-//                               ),
-//                     ),
-//                   ],
-//                 ),
-//               ),
-//     );
-//   }
-// }
