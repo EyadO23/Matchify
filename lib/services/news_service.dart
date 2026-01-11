@@ -22,25 +22,4 @@ class NewsService {
       throw Exception('Failed to load news');
     }
   }
-
-  Future<TeamNews> getTeamNews(int team_id) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$ip/api/teams/news'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'team_id': team_id}),
-      );
-
-      if (response.statusCode != 200) {
-        throw Exception('فشل تحميل الأخبار: كود الحالة ${response.statusCode}');
-      }
-
-      final Map<String, dynamic> data = jsonDecode(response.body);
-      log(data.toString());
-      return TeamNews.fromJson(data);
-    } catch (e) {
-      log("Error in NewsService: $e");
-      rethrow;
-    }
-  }
 }

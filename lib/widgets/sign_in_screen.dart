@@ -11,7 +11,7 @@ import 'package:matchifiy/widgets/CustomBackgroundScaffold.dart';
 class AppColors {
   static const Color primaryDark = Color(0xFF1E1E2E);
   static const Color inputFieldBg = Color(0xFF28283D);
-  static const Color gradientStart = Color(0xFF8A2BE2);
+  static const Color gradientStart = Color.fromARGB(255, 137, 182, 217);
   static const Color gradientEnd = Color(0xFFE0B0FF);
 }
 
@@ -125,7 +125,7 @@ class _SignInScreenState extends State<SignInScreen> {
       child: CustomBackgroundScaffold(
         appBar: AppBar(
           backgroundColor: Colors.transparent,
-          elevation: 0,
+          // elevation: 0,
           actions: [
             TextButton(
               onPressed: _toggleLanguage,

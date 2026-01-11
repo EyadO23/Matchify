@@ -52,7 +52,7 @@ class _MatchAnalysisScreenState extends State<MatchAnalysisScreen> {
   void initState() {
     super.initState();
     _loadUserFromStorage();
-    _checkIfVideoReady();
+    // _checkIfVideoReady();
     // _fetchNews();
   }
 
@@ -380,16 +380,16 @@ class _MatchAnalysisScreenState extends State<MatchAnalysisScreen> {
     }
   }
 
-  Future<void> _checkIfVideoReady() async {
-    final url = await TokenStorage.getLastVideoResult();
+  // Future<void> _checkIfVideoReady() async {
+  //   final url = await TokenStorage.getLastVideoResult();
 
-    if (url != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => VideoResultScreen(videoUrl: url)),
-      );
-    }
-  }
+  //   if (url != null && mounted) {
+  //     Navigator.push(
+  //       context,
+  //       MaterialPageRoute(builder: (_) => VideoResultScreen(videoUrl: url)),
+  //     );
+  //   }
+  // }
 
   void _toggleLanguage() {
     final currentLocale = Localizations.localeOf(context);
@@ -552,7 +552,7 @@ class _MatchAnalysisScreenState extends State<MatchAnalysisScreen> {
                           ? null
                           : () => startFullProcess(_finalVideoFile!),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 114, 116, 228),
+                    backgroundColor: Color.fromARGB(255, 137, 182, 217),
                     disabledBackgroundColor: const Color.fromARGB(
                       26,
                       133,
@@ -718,14 +718,14 @@ class _MatchAnalysisScreenState extends State<MatchAnalysisScreen> {
                     _toggleLanguage();
                   },
                 ),
-                _drawerItem(
-                  Icons.language,
-                  isArabic ? " اللغة" : "Change Language",
-                  () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/admin-dashboard');
-                  },
-                ),
+                // _drawerItem(
+                //   Icons.language,
+                //   isArabic ? " اللغة" : "Change Language",
+                //   () {
+                //     Navigator.pop(context);
+                //     Navigator.pushNamed(context, '/admin-dashboard');
+                //   },
+                // ),
                 _drawerItem(
                   Icons.video_library,
                   isArabic ? "ملخصاتي" : "My Summaries",

@@ -14,21 +14,40 @@ class UsersManagementScreen extends StatefulWidget {
 
 class _UsersManagementScreenState extends State<UsersManagementScreen> {
   final AdminService _adminService = AdminService();
+
   List<dynamic> _users = [];
+  List<Map<String, dynamic>> _blockedUsers = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadUsers();
+    _loadAllData();
   }
 
-  Future<void> _loadUsers() async {
+  Future<void> _loadAllData() async {
     setState(() => _isLoading = true);
     try {
       final users = await _adminService.getAllUsers();
-      log(users.toString());
-      setState(() => _users = users);
+      final blockedUsers = await _adminService.getBlockedUsers();
+
+      // تحويل المستخدمين العاديين
+      final List<Map<String, dynamic>> usersAsMap =
+          users
+              .map<Map<String, dynamic>>((u) => Map<String, dynamic>.from(u))
+              .toList();
+
+      final List<Map<String, dynamic>> blockedAsMap =
+          blockedUsers.map<Map<String, dynamic>>((u) {
+            final map = Map<String, dynamic>.from(u);
+            map['role'] = 'blocked';
+            return map;
+          }).toList();
+
+      setState(() {
+        _users = usersAsMap;
+        _blockedUsers = blockedAsMap;
+      });
     } catch (e) {
       _showSnackBar(e.toString());
     } finally {
@@ -36,11 +55,21 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
     }
   }
 
-  Future<void> _handleDelete(int userId) async {
+  Future<void> _handleBlock(int userId) async {
     try {
-      final result = await _adminService.deleteUser(userId);
+      final result = await _adminService.blockUser(userId);
       _showSnackBar(result['message']);
-      _loadUsers();
+      _loadAllData();
+    } catch (e) {
+      _showSnackBar(e.toString());
+    }
+  }
+
+  Future<void> _handleUnblock(int userId) async {
+    try {
+      final result = await _adminService.unblockUser(userId);
+      _showSnackBar(result['message']);
+      _loadAllData();
     } catch (e) {
       _showSnackBar(e.toString());
     }
@@ -68,7 +97,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
         ),
         backgroundColor: Colors.transparent,
         actions: [
-          IconButton(onPressed: _loadUsers, icon: const Icon(Icons.refresh)),
+          IconButton(onPressed: _loadAllData, icon: const Icon(Icons.refresh)),
         ],
       ),
       body:
@@ -81,7 +110,7 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
   Widget _buildUsersList() {
     final t = AppLocalizations.of(context);
 
-    if (_users.isEmpty) {
+    if (_users.isEmpty && _blockedUsers.isEmpty) {
       return Center(
         child: Text(
           t.translate('empty_list'),
@@ -90,54 +119,86 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
       );
     }
 
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.all(16),
-      itemCount: _users.length,
-      itemBuilder: (context, index) {
-        final user = _users[index];
-        return Card(
-          color: Colors.white.withOpacity(0.05),
-          child: ListTile(
-            onTap:
-                () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder:
-                        (context) => UserDetailsScreen(
-                          userId: user['id'],
-                          userName: user['name'],
-                        ),
-                  ),
-                ),
-            leading: const CircleAvatar(child: Icon(Icons.person)),
-            title: Text(
-              user['name'],
-              style: const TextStyle(color: Colors.white),
-            ),
-            subtitle: Text(
-              user['email'],
-              style: const TextStyle(color: Colors.white70),
-            ),
-            trailing: IconButton(
-              icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: () => _confirmDelete(user['id'], user['name']),
+      children: [
+        ..._users.map((user) => _buildUserTile(user)),
+        if (_blockedUsers.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Text(
+            t.translate('blocked_users'),
+            style: const TextStyle(
+              color: Colors.redAccent,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
             ),
           ),
-        );
-      },
+          const SizedBox(height: 8),
+          ..._blockedUsers.map((user) => _buildUserTile(user)),
+        ],
+      ],
     );
   }
 
-  void _confirmDelete(int id, String name) {
+  Widget _buildUserTile(Map<String, dynamic> user) {
+    final int userId = user['id'];
+    final bool isBlocked = user['role'] == 'blocked';
+
+    return Card(
+      color: Colors.white.withOpacity(0.05),
+      child: ListTile(
+        onTap:
+            () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => UserDetailsScreen(
+                      userId: userId,
+                      userName: user['name'] ?? '',
+                    ),
+              ),
+            ),
+        leading: const CircleAvatar(child: Icon(Icons.person)),
+        title: Text(
+          user['name'] ?? '',
+          style: const TextStyle(color: Colors.white),
+        ),
+        subtitle: Text(
+          user['email'] ?? '',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        trailing: IconButton(
+          icon: Icon(
+            isBlocked ? Icons.lock_open : Icons.block,
+            color: isBlocked ? Colors.greenAccent : Colors.redAccent,
+          ),
+          onPressed:
+              () => _confirmAction(userId, user['name'] ?? '', isBlocked),
+        ),
+      ),
+    );
+  }
+
+  void _confirmAction(int id, String name, bool isBlocked) {
     final t = AppLocalizations.of(context);
 
     showDialog(
       context: context,
       builder:
           (ctx) => AlertDialog(
-            title: Text(t.translate('confirm_delete')),
+            title: Text(
+              isBlocked
+                  ? t.translate('confirm_unblock')
+                  : t.translate('confirm_block'),
+            ),
             content: Text(
-              t.translate('confirm_delete_message').replaceAll('{name}', name),
+              isBlocked
+                  ? t
+                      .translate('confirm_unblock_message')
+                      .replaceAll('{name}', name)
+                  : t
+                      .translate('confirm_block_message')
+                      .replaceAll('{name}', name),
             ),
             actions: [
               TextButton(
@@ -145,12 +206,16 @@ class _UsersManagementScreenState extends State<UsersManagementScreen> {
                 child: Text(t.translate('cancel')),
               ),
               ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: isBlocked ? Colors.green : Colors.red,
+                ),
                 onPressed: () {
                   Navigator.pop(ctx);
-                  _handleDelete(id);
+                  isBlocked ? _handleUnblock(id) : _handleBlock(id);
                 },
-                child: Text(t.translate('delete')),
+                child: Text(
+                  isBlocked ? t.translate('unblock') : t.translate('block'),
+                ),
               ),
             ],
           ),

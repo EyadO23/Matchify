@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    
 
     <!-- التخزين: أندرويد 9 وما دون -->
     <uses-permission
@@ -21,10 +22,9 @@
 
         <!-- FlutterUploader Foreground Service -->
         <service
-            android:name="com.bluechilli.flutteruploader.FlutterUploaderService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
+            android:name=".UploadForegroundService"
+            android:foregroundServiceType="dataSync"
+            android:exported="false"/>
 
         <!-- WorkManager required components -->
         <provider

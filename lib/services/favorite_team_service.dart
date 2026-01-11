@@ -6,37 +6,6 @@ import 'package:matchifiy/services/token_storage.dart';
 
 class FavoriteTeamService {
   static final ip = TokenStorage.getIp();
-  Future<Team?> getFavoriteTeam() async {
-    final token = await TokenStorage.getToken();
-    if (token == null) return null;
-
-    try {
-      final response = await http.get(
-        Uri.parse('$ip/api/favorite-teams'),
-        headers: {
-          'Authorization': 'Bearer $token',
-          'Accept': 'application/json',
-          'Content-Type': 'application/json',
-        },
-      );
-      log(response.body);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        log(data.toString());
-
-        final List teams = data['favorite_teams'];
-
-        if (teams.isEmpty) return null;
-
-        return Team.fromJson(teams.first);
-      }
-
-      return null;
-    } catch (e) {
-      log("Error fetching favorite team: $e");
-      return null;
-    }
-  }
 
   Future<List<Team>> getTeams() async {
     final token = await TokenStorage.getToken();

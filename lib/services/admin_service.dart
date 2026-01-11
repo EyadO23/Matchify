@@ -1,3 +1,99 @@
+// import 'dart:convert';
+// import 'dart:developer';
+
+// import 'package:http/http.dart' as http;
+// import 'package:matchifiy/services/token_storage.dart';
+
+// class AdminService {
+//   String ip = TokenStorage.getIp();
+
+//   Future<List<dynamic>> getAllUsers() async {
+//     final token = await TokenStorage.getToken();
+//     try {
+//       final response = await http.get(
+//         Uri.parse('$ip/api/admin/users'),
+//         headers: {
+//           'Authorization': 'Bearer $token',
+//           'Accept': 'application/json',
+//         },
+//       );
+//       log(response.body);
+//       if (response.statusCode == 200) {
+//         return json.decode(response.body);
+//       } else {
+//         throw Exception("فشل جلب المستخدمين: ${response.statusCode}");
+//       }
+//     } catch (e) {
+//       throw Exception("خطأ في الاتصال بالسيرفر: $e");
+//     }
+//   }
+
+//   Future<Map<String, dynamic>> deleteUser(int userId) async {
+//     final token = await TokenStorage.getToken();
+//     try {
+//       final response = await http.delete(
+//         Uri.parse("$ip/api/admin/users/$userId"),
+//         headers: {
+//           'Authorization': 'Bearer $token',
+//           'Accept': 'application/json',
+//         },
+//       );
+
+//       final result = json.decode(response.body);
+//       if (response.statusCode == 200) {
+//         return result;
+//       } else {
+//         throw Exception(result['message'] ?? "فشل عملية الحذف");
+//       }
+//     } catch (e) {
+//       throw Exception("خطأ أثناء الحذف: $e");
+//     }
+//   }
+
+//   Future<Map<String, dynamic>> getUserReport(int userId) async {
+//     try {
+//       final token = await TokenStorage.getToken();
+
+//       final response = await http.get(
+//         Uri.parse("$ip/api/admin/users/$userId/video-reports"),
+//         headers: {
+//           'Authorization': 'Bearer $token',
+//           'Accept': 'application/json',
+//         },
+//       );
+//       log(response.body);
+
+//       if (response.statusCode == 200) {
+//         return json.decode(response.body);
+//       } else {
+//         throw Exception("فشل جلب تقارير المستخدم: ${response.statusCode}");
+//       }
+//     } catch (e) {
+//       throw Exception("خطأ في الاتصال: $e");
+//     }
+//   }
+
+//   Future<Map<String, dynamic>> getAllReports() async {
+//     final String _url = "$ip/api/videos/reportAll";
+//     final token = await TokenStorage.getToken();
+//     try {
+//       final response = await http.get(
+//         Uri.parse(_url),
+//         headers: {
+//           'Authorization': 'Bearer $token',
+//           'Accept': 'application/json',
+//         },
+//       );
+
+//       if (response.statusCode == 200) {
+//         return json.decode(response.body);
+//       }
+//       throw Exception("فشل تحميل البيانات");
+//     } catch (e) {
+//       rethrow;
+//     }
+//   }
+// }
 import 'dart:convert';
 import 'dart:developer';
 
@@ -6,7 +102,6 @@ import 'package:matchifiy/services/token_storage.dart';
 
 class AdminService {
   String ip = TokenStorage.getIp();
-
   Future<List<dynamic>> getAllUsers() async {
     final token = await TokenStorage.getToken();
     try {
@@ -28,11 +123,34 @@ class AdminService {
     }
   }
 
-  Future<Map<String, dynamic>> deleteUser(int userId) async {
+  Future<List<dynamic>> getBlockedUsers() async {
+    final token = await TokenStorage.getToken();
+
+    try {
+      final response = await http.get(
+        Uri.parse('$ip/api/admin/users/blocked'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      final data = json.decode(response.body);
+      log(data.toString());
+      final List usersJson = data['users'];
+      log(usersJson.toString());
+
+      return usersJson;
+    } catch (e) {
+      throw Exception("خطأ في الاتصال بالسيرفر: $e");
+    }
+  }
+
+  Future<Map<String, dynamic>> unblockUser(int userId) async {
     final token = await TokenStorage.getToken();
     try {
-      final response = await http.delete(
-        Uri.parse("$ip/api/admin/users/$userId"),
+      final response = await http.put(
+        Uri.parse("$ip/api/admin/users/$userId/unblock"),
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
@@ -47,6 +165,28 @@ class AdminService {
       }
     } catch (e) {
       throw Exception("خطأ أثناء الحذف: $e");
+    }
+  }
+
+  Future<Map<String, dynamic>> blockUser(int userId) async {
+    final token = await TokenStorage.getToken();
+    try {
+      final response = await http.put(
+        Uri.parse("$ip/api/admin/users/$userId"),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+        },
+      );
+
+      final result = json.decode(response.body);
+      if (response.statusCode == 200) {
+        return result;
+      } else {
+        throw Exception(result['message'] ?? "فشل عملية الغاء الحظر");
+      }
+    } catch (e) {
+      throw Exception("خطأ أثناء الغاء الحظر: $e");
     }
   }
 
@@ -84,7 +224,7 @@ class AdminService {
           'Accept': 'application/json',
         },
       );
-
+      log(json.decode(response.body));
       if (response.statusCode == 200) {
         return json.decode(response.body);
       }

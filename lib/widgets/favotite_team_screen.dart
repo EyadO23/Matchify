@@ -190,12 +190,7 @@ class _FavoriteTeamScreenState extends State<FavoriteTeamScreen> {
                               ? null
                               : _saveTeams,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(
-                          255,
-                          114,
-                          116,
-                          228,
-                        ),
+                        backgroundColor: Color.fromARGB(255, 137, 182, 217),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(

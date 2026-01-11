@@ -69,7 +69,7 @@ class AdminDashboardScreen extends StatelessWidget {
                             : "View, delete, and manage system users",
                     icon: Icons.group_outlined,
                     color: const Color(0xFF7274E4),
-                    onTap:
+                    onTap: //() => Navigator.pushNamed(context, '/analysis'),
                         () => Navigator.pushNamed(context, '/user_management'),
                   ),
                   _buildAdminCard(

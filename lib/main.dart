@@ -17,10 +17,12 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:matchifiy/widgets/register_screen.dart';
 import 'package:matchifiy/widgets/sign_in_screen.dart';
 import 'package:matchifiy/services/token_storage.dart';
+import 'package:workmanager/workmanager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
+  // await Workmanager().initialize(callbackDispatcher, isInDebugMode: true);
 
   final prefs = await SharedPreferences.getInstance();
   final String? languageCode = prefs.getString('language_code');

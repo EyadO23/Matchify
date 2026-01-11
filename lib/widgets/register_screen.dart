@@ -314,7 +314,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       height: 50,
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [AppColors.gradientStart, AppColors.gradientEnd],
+          colors: [AppColors.gradientStart, Color.fromARGB(255, 137, 182, 217)],
           begin: Alignment.centerLeft,
           end: Alignment.centerRight,
         ),
