@@ -134,9 +134,9 @@ class TeamsTableSeeder extends Seeder
         
         try {
             DB::table('teams')->insert($batchData);
-            echo "✅ تمت إضافة الدفعة " . (($i/$batchSize)+1) . " (" . count($batch) . " فريق)\n";
+            echo " تمت إضافة الدفعة " . (($i/$batchSize)+1) . " (" . count($batch) . " فريق)\n";
         } catch (\Exception $e) {
-            echo "❌ خطأ في الدفعة: " . $e->getMessage() . "\n";
+            echo " خطأ في الدفعة: " . $e->getMessage() . "\n";
             // حاول إضافة فرق فردياً
             foreach ($batch as $team) {
                 try {
@@ -147,7 +147,7 @@ class TeamsTableSeeder extends Seeder
                         'updated_at' => now(),
                     ]);
                 } catch (\Exception $e2) {
-                    echo "❌ فشل إضافة: {$team['name']} - " . $e2->getMessage() . "\n";
+                    echo " فشل إضافة: {$team['name']} - " . $e2->getMessage() . "\n";
                 }
             }
         }

@@ -154,29 +154,7 @@ public function result(string $jobId)
         }
     }
 
-//        public function myHighlights()
-// {
-//     $user = Auth::user();
 
-//     $summaries = VideoSummary::whereHas('video', function ($q) use ($user) {
-//             $q->where('user_id', $user->id);
-//         })
-//         ->with('video:id,created_at')
-//         ->orderBy('created_at', 'desc')
-//         ->get()
-//         ->map(function ($summary) {
-//             return [
-//                 'video_id'        => $summary->video_id,
-//                 'highlight_path'  => $summary->storage_path,
-               
-//             ];
-//         });
-
-//     return response()->json([
-//         'success'    => true,
-//         'highlights' => $summaries
-//     ]);
-// }
 public function myHighlights()
 {
     $user = Auth::user();

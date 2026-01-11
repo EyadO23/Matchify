@@ -124,37 +124,4 @@ class UserController extends Controller
     }
 }
 
-    // public function SummaryReports($userId): JsonResponse
-    // {
-    //     $user = User::findOrFail($userId);
-
-    //     $videos = $user->videos()->get();
-
-    //     $response = $videos->map(function ($video) {
-    //         $status     = $this->redis->get("job:{$video->id}:status");
-    //         $progress   = $this->redis->get("job:{$video->id}:progress");
-    //         $resultJson = $this->redis->get("job:{$video->id}:result");
-    //         $result     = $resultJson ? json_decode($resultJson, true) : null;
-
-    //         return [
-    //             'video_id'           => $video->id,
-    //             'summary_type'       => $video->summary_type,
-    //             'processing_status'  => $status ?? $video->processing_status,
-    //             'progress'           => (int) ($progress ?? 0),
-    //             'result'             => $result,
-    //             'duration_seconds'   => $video->duration_seconds,
-    //             'created_at'         => $video->created_at,
-    //         ];
-    //     });
-
-    //     return response()->json([
-    //         'user_id'   => $user->id,
-    //         'user_name' => $user->name,
-    //         'videos'    => $response,
-    //     ]);
-    // }
-
-
    
-
-
