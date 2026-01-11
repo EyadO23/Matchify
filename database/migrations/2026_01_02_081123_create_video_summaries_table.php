@@ -16,10 +16,8 @@ return new class extends Migration
              $table->foreignId('video_id')
                   ->unique()             
                   ->constrained('videos')
-                  ->restrictOnDelete();   // بدون cascade
+                  ->restrictOnDelete();   
             $table->string('storage_path')->nullable(); 
-            $table->integer('start_time_sec'); // بداية المقطع بالثواني
-            $table->integer('end_time_sec');   // نهاية المقطع بالثواني
             $table->decimal('confidence_score', 5, 4)->nullable();
             $table->timestamps();
         });

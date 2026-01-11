@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('teams', function (Blueprint $table) {
-            $table->id('team_id'); // ✅ id عادية
+            $table->id('team_id'); 
             $table->string('name')->unique();
             $table->string('logo_url')->nullable();
             $table->timestamps();

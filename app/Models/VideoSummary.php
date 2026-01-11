@@ -7,15 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class VideoSummary extends Model
 {
     protected $fillable = [
-        'video_id',         // معرف الفيديو الأصلي
-        'job_id',           // معرف الـ job
-        'clips_dir',        // مسار الكليبات
-        'summary_type',     // نوع الملخص
-        'summary_length',   // طول الملخص
-        'storage_path',     // مسار الفيديو النهائي
-        'start_time_sec',   // وقت بداية الملخص
-        'end_time_sec',     // وقت نهاية الملخص
-        'confidence_score', // درجة الثقة بالملخص
+        'video_id',         
+        'job_id',          
+        'clips_dir',        
+
+        'storage_path',     
+        'confidence_score', 
     ];
 
     protected $casts = [

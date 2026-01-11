@@ -45,7 +45,7 @@ class FirebaseAuthController extends Controller
     ['email' => $email],
     [
         'name' => $name,
-        'username' => $this->generateUsername($email), // ← أضف هذا
+        'username' => $this->generateUsername($email), 
         'password' => Hash::make(Str::random(32)),
         'email_verified_at' => now(),
     ]

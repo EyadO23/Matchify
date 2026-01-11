@@ -28,5 +28,6 @@ class Kernel extends ConsoleKernel
     }
     protected $routeMiddleware= [
         'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        'token.expired' => \App\Http\Middleware\CheckTokenExpiration::class,
     ];
 }

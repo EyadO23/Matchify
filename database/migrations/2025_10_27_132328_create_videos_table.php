@@ -14,9 +14,7 @@ return new class extends Migration
         Schema::create('videos', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
-            $table->string('url')->nullable();
-            $table->enum('summary_type', ['اهداف', 'بطاقة حمراء', 'لقطات لاعب معين','بطاقة صفراء']);
-            $table->enum('summary_length', ['قصير', 'طويل']);
+            $table->enum('summary_type', ['goals','cards']);
             $table->integer('duration_seconds')->nullable();
             $table->enum('processing_status', [
                                                 'uploaded',

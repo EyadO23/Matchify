@@ -16,7 +16,7 @@ return new class extends Migration
                   ->onDelete('cascade');
             
             $table->foreignId('team_id')
-                  ->constrained('teams', 'team_id') // ✅ رح ترجع لـ id تلقائياً
+                  ->constrained('teams', 'team_id') 
                   ->onDelete('cascade');
             
             $table->timestamps();

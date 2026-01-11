@@ -15,7 +15,7 @@ use Illuminate\Auth\Notifications\ResetPassword as BaseResetPassword;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, Notifiable; // 
+    use HasApiTokens, Notifiable,  HasFactory; // 
 
     
 
@@ -36,7 +36,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'username',
         'email',
         'password',
-        'role'
+        'role',
+        'fcm_token'
     ];
 
     /**
@@ -74,9 +75,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
 
 
-     public function filtters(): HasMany
+    public function videos()
     {
-        return $this->hasMany(Video::class, 'user_id');
+        return $this->hasMany(Video::class);
     }
 
     

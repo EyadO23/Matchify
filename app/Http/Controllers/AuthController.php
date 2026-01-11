@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Validator;
 use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Mail;
+use Laravel\Sanctum\PersonalAccessToken;
+
+use Carbon\Carbon; 
 class AuthController extends Controller
 {
     
@@ -38,14 +41,19 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // إنشاء توكن
-        $token = $user->createToken('auth_token')->plainTextToken;
+       // إنشاء توكين بصلاحية أسبوع
+    $tokenInstance = $user->createToken(
+        'auth_token',
+        ['*'],
+        Carbon::now()->addWeek()
+    );
 
         return response()->json([
             'success' => true,
             'message' => 'تم تسجيل الدخول بنجاح',
             'user' => $user,
-            'token' => $token
+            'token' => $tokenInstance->plainTextToken,
+        'expires_at' => $tokenInstance->accessToken->expires_at
         ]);
     }
 
@@ -76,13 +84,18 @@ class AuthController extends Controller
             'role' => $validated['role'] ?? 'user'
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+          $tokenInstance = $user->createToken(
+        'auth_token',
+        ['*'],
+        Carbon::now()->addWeek()
+    );
 
         return response()->json([
             'success' => true,
             'message' => 'تم التسجيل بنجاح',
             'user' => $user,
-            'token' => $token
+           'token' => $tokenInstance->plainTextToken,
+        'expires_at' => $tokenInstance->accessToken->expires_at
         ]);
     }
 
@@ -199,16 +212,25 @@ public function resetPassword(Request $request)
     }
 
 
+    
     // تسجيل الخروج
-    public function logout(Request $request)
-    {
-        $request->user()->currentAccessToken()->delete();
-        return response()->json([
-            'success' => true,
-            'message' => 'تم تسجيل الخروج بنجاح'
-        ]);
+public function logout(Request $request)
+{
+     $bearer = $request->bearerToken();
+
+    if ($bearer) {
+        // البحث عن التوكن في DB وحذفه
+        $token = PersonalAccessToken::findToken($bearer);
+        if ($token) {
+            $token->delete();
+        }
     }
 
+    return response()->json([
+        'success' => true,
+        'message' => 'تم تسجيل الخروج بنجاح'
+    ]);
+}
     
     public function redirectToGoogle()
     {
@@ -232,18 +254,24 @@ public function resetPassword(Request $request)
                 'password' => Hash::make(rand(100000, 999999))
             ]);
 
-            Auth::login($newUser);
+           
         }
 
-            $token = $findUser ? $findUser : $newUser;
-            $token = $token->createToken('auth_token')->plainTextToken;
+            $authUser = $findUser ?? $newUser; // المستخدم الفعلي
+            $tokenInstance = $authUser->createToken(
+                'auth_token',
+                ['*'],
+                Carbon::now()->addWeek()
+            );
 
             return response()->json([
-            'success' => true,
-            'message' => 'تم تسجيل الدخول عبر Google',
-            'user' => $token,
-            'token' => $token
-        ]);
+                'success' => true,
+                'message' => 'تم تسجيل الدخول عبر Google',
+                'user' => $authUser,
+                'token' => $tokenInstance->plainTextToken,
+                'expires_at' => $tokenInstance->accessToken->expires_at
+            ]);
+
 
         } catch (\Exception $e) {
                return response()->json([

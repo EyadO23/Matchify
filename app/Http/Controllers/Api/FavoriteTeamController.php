@@ -1,47 +1,5 @@
 <?php
 
-// namespace App\Http\Controllers\Api;
-
-// use App\Http\Controllers\Controller;
-// use Illuminate\Http\Request;
-// use App\Models\FavoriteTeam;
-
-// class FavoriteTeamController extends Controller
-// {
-//     // 🔹 جلب الفريق المفضل لليوزر
-//     public function show(Request $request)
-//     {
-//         $user = $request->user();
-
-//         $favorite = $user->favoriteTeam;
-
-//         return response()->json([
-//             'team' => $favorite?->team
-//         ]);
-//     }
-
-//     // 🔹 إنشاء أو تعديل الفريق
-//     public function store(Request $request)
-//     {
-//         $request->validate([
-//             'team' => 'required|string|max:100'
-//         ]);
-
-//         $user = $request->user();
-
-//         $favorite = FavoriteTeam::updateOrCreate(
-//             ['user_id' => $user->id],
-//             ['team' => $request->team]
-//         );
-
-//         return response()->json([
-//             'message' => 'Favorite team saved',
-//             'team' => $favorite->team
-//         ]);
-//     }
-// }
-
-
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -50,7 +8,7 @@ use App\Models\Team;
 
 class FavoriteTeamController extends Controller
 {
-    // 🔹 GET: جلب الفرق المفضلة للمستخدم
+    //  GET: جلب الفرق المفضلة للمستخدم
     public function index(Request $request)
     {
         $user = $request->user();
@@ -59,7 +17,7 @@ class FavoriteTeamController extends Controller
 
         $formattedTeams = $favoriteTeams->map(function ($team) {
             return [
-                'team_id' => $team->team_id,  // ✅ استخدم team_id
+                'team_id' => $team->team_id,  
                 'team_name' => $team->name,
                 'logo_url' => $team->logo_url,
                 'added_at' => $team->pivot->created_at ?? null
@@ -75,14 +33,14 @@ class FavoriteTeamController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'team_id' => 'required|exists:teams,team_id'  // ✅ غير لـ teams,team_id
+            'team_id' => 'required|exists:teams,team_id'  
         ]);
 
         $user = $request->user();
 
         // التحقق إذا الفريق مضاف مسبقاً
         $exists = $user->favoriteTeams()
-            ->where('teams.team_id', $request->team_id)  // ✅ غير لـ team_id
+            ->where('teams.team_id', $request->team_id)  
             ->exists();
 
         if ($exists) {
@@ -94,12 +52,12 @@ class FavoriteTeamController extends Controller
         // إضافة الفريق للمفضلة
         $user->favoriteTeams()->attach($request->team_id);
 
-        $team = Team::where('team_id', $request->team_id)->first();  // ✅ استخدم where بدل find
+        $team = Team::where('team_id', $request->team_id)->first();  
 
         return response()->json([
             'message' => 'تمت إضافة الفريق إلى المفضلة بنجاح',
             'team' => [
-                'team_id' => $team->team_id,  // ✅ team_id
+                'team_id' => $team->team_id,  
                 'name' => $team->name,
                 'logo_url' => $team->logo_url
             ]
@@ -154,7 +112,7 @@ class FavoriteTeamController extends Controller
         'favorite_teams_count' => count($newTeamIds)
     ]);
 }
-    // 🔹 DELETE: حذف فريق من المفضلة
+    //  DELETE: حذف فريق من المفضلة
     public function destroy(Request $request, $teamId)
     {
         $user = $request->user();
@@ -172,7 +130,7 @@ class FavoriteTeamController extends Controller
         ], 404);
     }
 
-    // 🔹 GET: جلب قائمة جميع الفرق المتاحة
+    //  GET: جلب قائمة جميع الفرق المتاحة
     public function availableTeams(Request $request)
     {
         $teams = Team::orderBy('name')->get(['team_id', 'name', 'logo_url']);
@@ -182,7 +140,7 @@ class FavoriteTeamController extends Controller
         ]);
     }
 
-    // 🔹 GET: جلب فريق معين بالتفاصيل
+    //  GET: جلب فريق معين بالتفاصيل
     public function show($teamId)
     {
         $team = Team::where('team_id', $teamId)->first();

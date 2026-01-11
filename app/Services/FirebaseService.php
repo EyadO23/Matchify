@@ -1,10 +1,14 @@
 <?php
 
+
+
+
 namespace App\Services;
 
 use Kreait\Firebase\Factory;
 use Kreait\Firebase\Messaging\CloudMessage;
 use Kreait\Firebase\Messaging\Notification;
+use Illuminate\Support\Facades\Log;
 
 class FirebaseService
 {
@@ -14,7 +18,8 @@ class FirebaseService
     {
         // تهيئة Firebase
         $factory = (new Factory)
-            ->withServiceAccount(storage_path('app/Firebase/serviceAccountKey.json')); // مسار ملف JSON
+            ->withServiceAccount(storage_path('app/Firebase/serviceAccountKey.json'));
+
         $this->messaging = $factory->createMessaging();
     }
 
@@ -23,37 +28,87 @@ class FirebaseService
      */
     public function sendNotificationToDevice(string $deviceToken, string $title, string $body)
     {
-        $notification = Notification::create($title, $body);
-
-        $message = CloudMessage::new()
-            ->withNotification($notification)
-            ->toToken($deviceToken); // ← استخدمنا toToken بدل withTarget
-
         try {
-            $this->messaging->send($message);
-            return ['success' => true, 'message' => 'تم إرسال الإشعار بنجاح!'];
-        } catch (\Kreait\Firebase\Exception\MessagingException $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
-        } catch (\Kreait\Firebase\Exception\FirebaseException $e) {
-            return ['success' => false, 'error' => $e->getMessage()];
+            $notification = Notification::create($title, $body);
+
+            $message = CloudMessage::new()
+                ->withNotification($notification)
+                ->toToken($deviceToken);
+
+            $sendResult = $this->messaging->send($message);
+
+            Log::info('Firebase Notification sent', [
+                'token' => $deviceToken,
+                'title' => $title,
+                'body' => $body,
+                'firebase_result' => $sendResult,
+            ]);
+
+            return [
+                'success' => true,
+                'message' => 'تم إرسال الإشعار بنجاح!',
+                'firebase_result' => $sendResult,
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error('Firebase Notification error', [
+                'token' => $deviceToken,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+            ];
         }
     }
 
     /**
-     * إرسال إشعارات لعدة أجهزة (Multicast)
+     * إرسال إشعار لعدة أجهزة (Multicast)
      */
     public function sendNotificationToDevices(array $deviceTokens, string $title, string $body)
     {
-        $notification = Notification::create($title, $body);
+        try {
+            $notification = Notification::create($title, $body);
 
-        $message = CloudMessage::new()
-            ->withNotification($notification);
+            $message = CloudMessage::new()
+                ->withNotification($notification);
 
-        $report = $this->messaging->sendMulticast($message, $deviceTokens);
+            $report = $this->messaging->sendMulticast($message, $deviceTokens);
 
-        return [
-            'success_count' => $report->successes()->count(),
-            'failure_count' => $report->failures()->count(),
-        ];
+            $failures = [];
+            foreach ($report->failures() as $item) {
+                if (method_exists($item, 'error') && $item->error() !== null) {
+                    $failures[] = $item->error()->getMessage();
+                } else {
+                    $failures[] = 'Unknown error';
+                }
+            }
+
+            Log::info('Firebase Multicast Notification sent', [
+                'tokens_count' => count($deviceTokens),
+                'success_count' => $report->successes()->count(),
+                'failure_count' => $report->failures()->count(),
+                'failures' => $failures,
+            ]);
+
+            return [
+                'success_count' => $report->successes()->count(),
+                'failure_count' => $report->failures()->count(),
+                'failures' => $failures,
+            ];
+
+        } catch (\Throwable $e) {
+            Log::error('Firebase Multicast error', [
+                'tokens' => $deviceTokens,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'success_count' => 0,
+                'failure_count' => count($deviceTokens),
+                'error' => $e->getMessage(),
+            ];
+        }
     }
 }

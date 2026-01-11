@@ -7,25 +7,43 @@ use App\Services\FirebaseService;
 
 class NotificationController extends Controller
 {
-   // protected FirebaseService $firebase;
-
     public function __construct(protected FirebaseService $firebase)
     {
-        $this->firebase = $firebase;
     }
 
-    public function sendTest(Request $request)
+    /**
+     * حفظ FCM token للمستخدم الحالي
+     */
+    public function saveFcmToken(Request $request)
     {
         $request->validate([
-            'token' => 'required|string',
-            'title' => 'required|string',
-            'body' => 'required|string',
+            'fcm_token' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        $user->update([
+            'fcm_token' => $request->fcm_token,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'FCM token saved successfully'
+        ]);
+    }
+
+    /**
+     * إرسال إشعار تجريبي للمستخدم الحالي
+     */
+    public function sendTestNotification(Request $request)
+    {
+        $request->validate([
+            'fcm_token' => 'required|string',
         ]);
 
         $result = $this->firebase->sendNotificationToDevice(
-            $request->token,
-            $request->title,
-            $request->body
+            $request->fcm_token,
+            "Test Notification",
+            "This is a test notification from Laravel."
         );
 
         return response()->json($result);

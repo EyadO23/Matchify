@@ -5,13 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 class Video extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'user_id',
         'summary_type',
-        'summary_length',
         'duration_seconds',
         'processing_status',
     ];

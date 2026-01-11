@@ -68,10 +68,16 @@ def cut_video_segments(video_path, segments, output_dir, padding=1.5):
             continue
 
         out_path = output_dir / f"clip_{i}.mp4"
-        video.subclip(s, e).write_videofile(
+
+        subclip = video.subclip(s, e)
+        if subclip.audio is None:
+            print(f"Warning: clip {i} has no audio, copying original audio")
+        subclip.write_videofile(
             str(out_path),
             codec="libx264",
-            audio_codec="aac",
+            audio_codec="aac",   # ترميز الصوت
+            temp_audiofile=str(out_path) + "_temp_audio.m4a",  # مهم لتجنب مشاكل الصوت
+            remove_temp=True,
             verbose=False,
             logger=None
         )
@@ -88,11 +94,7 @@ def cut_video_segments(video_path, segments, output_dir, padding=1.5):
 
 
 def process_video_highlights(video_path, output_dir, summary_type=None, summary_length=None):
-    """
-    المعالجة الرئيسية لاستخراج الـ highlights من الفيديو
-    summary_type: "اهداف" / "بطاقة حمراء" / "بطاقة صفراء"
-    summary_length: "قصير" / "طويل"
-    """
+   
     start_time = time.time()
 
     # استخراج مقاطع الصوت
@@ -116,11 +118,7 @@ def process_video_highlights(video_path, output_dir, summary_type=None, summary_
         ),
         "processing_time_sec": round(time.time() - start_time, 2),
         "clips": clips,
-        # =========================
-        # البيانات الجديدة
-        # =========================
-        "summary_type": summary_type,
-        "summary_length": summary_length
+        
     }
 
     return result

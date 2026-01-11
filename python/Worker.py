@@ -38,7 +38,6 @@ while running:
         video_path = data["video_path"]
         clips_dir_str = data["clips_dir"]
         summary_type = data.get("summary_type")
-        summary_length = data.get("summary_length")
         user_id = data.get("user_id")
 
         print(f"Processing video job {job_id}")
@@ -63,14 +62,8 @@ while running:
                 video_path=str(Path(video_path).resolve()),
                 output_dir=str(clips_dir.resolve()),
                 summary_type=summary_type,
-                summary_length=summary_length
             )
 
-            # =========================
-            # تحديث progress تدريجيًا أثناء المعالجة
-            # هنا مثال، يمكن تعديل داخل pipeline حسب تقدم المعالجة
-            # =========================
-            # r.set(f"job:{job_id}:progress", 50)  # يمكن تحديثها ديناميكياً
 
             # =========================
             # Normalize clip paths لتخزينها
@@ -82,7 +75,6 @@ while running:
             result["clips"] = clip_paths
             result["clips_dir"] = str(clips_dir.resolve())
             result["summary_type"] = summary_type
-            result["summary_length"] = summary_length
             result["user_id"] = user_id
 
             # =========================

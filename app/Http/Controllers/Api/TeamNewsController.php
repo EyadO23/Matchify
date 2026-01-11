@@ -1,45 +1,5 @@
 <?php
 
-// namespace App\Http\Controllers\Api;
-
-// use App\Http\Controllers\Controller;
-// use Illuminate\Http\Request;
-// use Illuminate\Support\Facades\Http;
-// use App\Services\NewsService;
-// use App\Services\AiService;
-
-// class TeamNewsController extends Controller
-// {
-//     public function summarize(
-//         Request $request,
-//         NewsService $newsService,
-//         AiService $aiService
-//     ) {
-//         $team = $request->input('team');
-
-//         if (!$team) {
-//             return response()->json(['error' => 'اسم الفريق مطلوب'], 400);
-//         }
-
-//         $articles = $newsService->getTeamNews($team);
-
-//         if (empty($articles)) {
-//             return response()->json([
-//                 'team' => $team,
-//                 'summary' => 'لا توجد أخبار حديثة عن هذا الفريق.',
-//                 'articles' => [],
-//             ]);
-//         }
-
-//         $summary = $aiService->summarizeNews($team, $articles);
-
-//         return response()->json([
-//             'team' => $team,
-//             'articles' => $articles,
-//             'summary' => $summary,
-//         ]);
-//     }
-// }
 
 
 namespace App\Http\Controllers\Api;
@@ -65,7 +25,7 @@ class TeamNewsController extends Controller
             return response()->json(['error' => 'الفريق غير موجود'], 404);
         }
         
-        // ⚡ نفس الاستدعاء القديم
+        
         $articles = $newsService->getTeamNews($team->name);
         
         return response()->json([
@@ -94,14 +54,14 @@ class TeamNewsController extends Controller
         
         $allArticles = [];
         
-        // جلب أخبار كل فريق باستخدام نفس الاستدعاء القديم
+        // جلب أخبار كل فريق 
         foreach ($favoriteTeams as $team) {
             $articles = $newsService->getTeamNews($team->name);
             
-            // إضافة معلومات الفريق لكل مقالة (بنفس نمط الدالة الأصلية)
+            // إضافة معلومات الفريق لكل مقالة 
             foreach ($articles as $article) {
                 $allArticles[] = [
-                    ...$article, // نشر محتوى المقالة الأصلي
+                    ...$article, 
                     'team_id' => $team->team_id,
                     'team_name' => $team->name,
                     'team_logo' => $team->logo_url

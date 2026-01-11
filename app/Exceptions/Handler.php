@@ -11,11 +11,12 @@ class Handler extends ExceptionHandler
 {
     public function render($request, Throwable $e)
     {
-        if ($request->wantsJson() || $request->is('api/*')) {
+        if ($request->is('api/*')) {
+
             if ($e instanceof AuthenticationException) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'يجب تسجيل الدخول أولاً (Token غير صالح أو مفقود).'
+                    'message' => 'Token غير صالح أو منتهي. يرجى تسجيل الدخول.'
                 ], 401);
             }
 
@@ -27,7 +28,6 @@ class Handler extends ExceptionHandler
                 ], 422);
             }
 
-            // لأي خطأ داخلي: لا تُظهر التفاصيل في الإنتاج
             return response()->json([
                 'success' => false,
                 'message' => 'حدث خطأ داخلي. يُرجى المحاولة لاحقًا.'
@@ -36,4 +36,17 @@ class Handler extends ExceptionHandler
 
         return parent::render($request, $e);
     }
+
+    
+protected function unauthenticated($request, AuthenticationException $exception)
+{
+    if ($request->expectsJson()) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Unauthenticated'
+        ], 401);
+    }
+
+    return redirect()->guest(route('login'));
+}
 }
